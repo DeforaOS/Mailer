@@ -18,9 +18,13 @@
 #ifndef DESKTOP_MAILER_HELPER_H
 # define DESKTOP_MAILER_HELPER_H
 
+# include <time.h>
+
 
 /* public */
 /* functions */
+time_t mailer_helper_get_date(char const * date, struct tm * tm);
+
 char * mailer_helper_get_email(char const * header);
 char * mailer_helper_get_name(char const * header);
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 #$Id$
 #Copyright (c) 2012 Pierre Pronchery <khorben@defora.org>
-#This file is part of DeforaOS System libc
+#This file is part of DeforaOS Desktop Mailer
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
 #the Free Software Foundation, version 3 of the License.
@@ -45,6 +45,7 @@ target="$1"
 
 > "$target"
 FAILED=
+./date			>> "$target"	|| FAILED="$FAILED date(error $?)"
 ./email			>> "$target"	|| FAILED="$FAILED email(error $?)"
 [ -z "$FAILED" ]			&& exit 0
 echo "Failed tests:$FAILED" 1>&2

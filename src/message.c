@@ -346,14 +346,7 @@ static int _message_set_date(Message * message, char const * date)
 	time_t t;
 	char buf[32];
 
-	memset(&tm, 0, sizeof(tm));
-	if(date != NULL && strptime(date, "%a, %d %b %Y %T", &tm) != NULL)
-		t = mktime(&tm);
-	else
-	{
-		t = time(NULL);
-		gmtime_r(&t, &tm);
-	}
+	t = mailer_helper_get_date(date, &tm);
 	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &tm);
 	_message_set(message, MHC_DATE, t, MHC_DATE_DISPLAY, buf, -1);
 	return 0;

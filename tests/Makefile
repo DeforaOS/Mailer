@@ -1,4 +1,4 @@
-TARGETS	= email tests.log
+TARGETS	= date email tests.log
 PREFIX	= /usr/local
 DESTDIR	=
 BINDIR	= $(PREFIX)/bin
@@ -17,6 +17,13 @@ INSTALL	?= install
 
 all: $(TARGETS)
 
+date_OBJS = date.o
+date_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+date_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+
+date: $(date_OBJS)
+	$(CC) -o date $(date_OBJS) $(date_LDFLAGS)
+
 email_OBJS = email.o
 email_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 email_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
@@ -27,11 +34,14 @@ email: $(email_OBJS)
 tests.log: email
 	./tests.sh -P "$(PREFIX)" -- "tests.log"
 
+date.o: date.c ../src/libMailer.a
+	$(CC) $(date_CFLAGS) -c date.c
+
 email.o: email.c ../src/libMailer.a
 	$(CC) $(email_CFLAGS) -c email.c
 
 clean:
-	$(RM) -- $(email_OBJS) $(tests.log_OBJS)
+	$(RM) -- $(date_OBJS) $(email_OBJS) $(tests.log_OBJS)
 
 distclean: clean
 	$(RM) -- $(TARGETS)

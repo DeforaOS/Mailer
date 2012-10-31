@@ -24,6 +24,32 @@
 
 /* public */
 /* functions */
+/* mailer_helper_get_date */
+time_t mailer_helper_get_date(char const * date, struct tm * tm)
+{
+	time_t t;
+
+	if(date != NULL)
+	{
+		/* FIXME check the standard(s) again */
+		if(strptime(date, "%a, %d %b %Y %T %z", tm) != NULL)
+			return mktime(tm);
+		if(strptime(date, "%d %b %Y %T %z", tm) != NULL)
+			return mktime(tm);
+		if(strptime(date, "%d/%m/%Y %T %z", tm) != NULL)
+			return mktime(tm);
+		if(strptime(date, "%d/%m/%Y %T", tm) != NULL)
+			return mktime(tm);
+		if(strptime(date, "%FT%TZ", tm) != NULL)
+			return mktime(tm);
+	}
+	/* XXX fallback to the current time and date */
+	t = time(NULL);
+	gmtime_r(&t, tm);
+	return t;
+}
+
+
 /* mailer_helper_get_email */
 char * mailer_helper_get_email(char const * header)
 {

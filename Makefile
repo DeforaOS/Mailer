@@ -107,6 +107,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/src/plugins/search.c \
 		$(PACKAGE)-$(VERSION)/src/plugins/Makefile \
 		$(PACKAGE)-$(VERSION)/src/plugins/project.conf \
+		$(PACKAGE)-$(VERSION)/tests/date.c \
 		$(PACKAGE)-$(VERSION)/tests/email.c \
 		$(PACKAGE)-$(VERSION)/tests/Makefile \
 		$(PACKAGE)-$(VERSION)/tests/tests.sh \
