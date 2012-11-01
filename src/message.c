@@ -321,6 +321,75 @@ void message_set_read(Message * message, gboolean read)
 }
 
 
+/* useful */
+/* message_save
+ * XXX may not save the message exactly like the original */
+static int _save_from(MailerMessage * message, FILE * fp);
+static int _save_headers(MailerMessage * message, FILE * fp);
+static int _save_body(MailerMessage * message, FILE * fp);
+
+int message_save(MailerMessage * message, char const * filename)
+{
+	FILE * fp;
+
+	if((fp = fopen(filename, "w")) == NULL)
+		return -1;
+	if(_save_from(message, fp) != 0 || _save_headers(message, fp) != 0
+			|| _save_body(message, fp) != 0)
+	{
+		fclose(fp);
+		return -1;
+	}
+	if(fclose(fp) != 0)
+		return -1;
+	return 0;
+}
+
+static int _save_from(MailerMessage * message, FILE * fp)
+{
+	char const * p;
+
+	if((p = message_get_header(message, "From")) == NULL)
+		p = "unknown-sender";
+	if(fputs("From ", fp) != 0 || fputs(p, fp) != 0 || fputs("\n", fp) != 0)
+		return -1;
+	return 0;
+}
+
+static int _save_headers(MailerMessage * message, FILE * fp)
+{
+	size_t i;
+
+	/* output the headers */
+	for(i = 0; i < message->headers_cnt; i++)
+		if(fputs(message->headers[i].header, fp) != 0
+				|| fputs(": ", fp) != 0
+				|| fputs(message->headers[i].value, fp) != 0
+				|| fputs("\n", fp) != 0)
+			return -1;
+	if(fputs("\n", fp) != 0)
+		return -1;
+	return 0;
+}
+
+static int _save_body(MailerMessage * message, FILE * fp)
+{
+	GtkTextIter start;
+	GtkTextIter end;
+	gchar * text;
+	int res;
+
+	/* output the body */
+	/* FIXME implement properly */
+	gtk_text_buffer_get_start_iter(message->text, &start);
+	gtk_text_buffer_get_end_iter(message->text, &end);
+	text = gtk_text_buffer_get_text(message->text, &start, &end, TRUE);
+	res = fputs(text, fp);
+	g_free(text);
+	return (res == 0) ? 0 : -1;
+}
+
+
 /* private */
 /* functions */
 /* accessors */

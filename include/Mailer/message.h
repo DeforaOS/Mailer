@@ -32,4 +32,7 @@ typedef struct _AccountMessage AccountMessage;
 /* accessors */
 char const * message_get_header(MailerMessage * message, char const * header);
 
+/* useful */
+int message_save(MailerMessage * message, char const * filename);
+
 #endif /* !DESKTOP_MAILER_MESSAGE_H */
