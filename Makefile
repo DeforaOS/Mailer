@@ -105,6 +105,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/src/account/project.conf \
 		$(PACKAGE)-$(VERSION)/src/plugins/mailing-lists.c \
 		$(PACKAGE)-$(VERSION)/src/plugins/search.c \
+		$(PACKAGE)-$(VERSION)/src/plugins/template.c \
 		$(PACKAGE)-$(VERSION)/src/plugins/Makefile \
 		$(PACKAGE)-$(VERSION)/src/plugins/project.conf \
 		$(PACKAGE)-$(VERSION)/tests/date.c \

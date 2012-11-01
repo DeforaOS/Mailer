@@ -1,4 +1,4 @@
-TARGETS	= mailing-lists.so search.so
+TARGETS	= mailing-lists.so search.so template.so
 PREFIX	= /usr/local
 DESTDIR	=
 LIBDIR	= $(PREFIX)/lib
@@ -33,14 +33,24 @@ search_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 search.so: $(search_OBJS)
 	$(CCSHARED) -o search.so $(search_OBJS) $(search_LDFLAGS)
 
+template_OBJS = template.o
+template_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+template_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+
+template.so: $(template_OBJS)
+	$(CCSHARED) -o template.so $(template_OBJS) $(template_LDFLAGS)
+
 mailing-lists.o: mailing-lists.c ../../include/Mailer.h
 	$(CC) $(mailing-lists_CFLAGS) -c mailing-lists.c
 
 search.o: search.c ../../include/Mailer.h
 	$(CC) $(search_CFLAGS) -c search.c
 
+template.o: template.c ../../include/Mailer.h
+	$(CC) $(template_CFLAGS) -c template.c
+
 clean:
-	$(RM) -- $(mailing-lists_OBJS) $(search_OBJS)
+	$(RM) -- $(mailing-lists_OBJS) $(search_OBJS) $(template_OBJS)
 
 distclean: clean
 	$(RM) -- $(TARGETS)
