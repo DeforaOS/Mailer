@@ -41,6 +41,7 @@ void on_message_delete(gpointer data);
 void on_message_forward(gpointer data);
 void on_message_reply(gpointer data);
 void on_message_reply_to_all(gpointer data);
+void on_message_save_as(gpointer data);
 void on_message_view_source(gpointer data);
 
 /* help menu */

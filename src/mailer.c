@@ -202,6 +202,9 @@ static const DesktopMenu _menu_message[] =
 	{ N_("_Forward"), G_CALLBACK(on_message_forward), "stock_mail-forward",
 		0, 0 },
 	{ "", NULL, NULL, 0, 0 },
+	{ N_("Save _as..."), G_CALLBACK(on_message_save_as), GTK_STOCK_SAVE_AS,
+		GDK_CONTROL_MASK, GDK_KEY_S },
+	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Delete"), G_CALLBACK(on_message_delete), GTK_STOCK_DELETE, 0,
 		GDK_KEY_Delete },
 	{ "", NULL, NULL, 0, 0 },
@@ -294,6 +297,7 @@ static DesktopToolbar _mailer_bo_toolbar[] =
 static gboolean _mailer_plugin_is_enabled(Mailer * mailer, char const * plugin);
 static char const * _mailer_get_font(Mailer * mailer);
 static char * _mailer_get_config_filename(void);
+static GList * _mailer_get_selected_headers(Mailer * mailer);
 
 /* useful */
 static int _mailer_config_load_account(Mailer * mailer, char const * name);
@@ -1156,7 +1160,6 @@ void mailer_delete_selected(Mailer * mailer)
 {
 	/* FIXME figure which area is focused first (deleting folders) */
 	GtkTreeModel * model;
-	GtkTreeSelection * treesel;
 	GList * selected;
 	GList * s;
 	GtkTreePath * path;
@@ -1165,11 +1168,7 @@ void mailer_delete_selected(Mailer * mailer)
 	if((model = gtk_tree_view_get_model(GTK_TREE_VIEW(mailer->he_view)))
 			== NULL)
 		return;
-	if((treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(
-						mailer->he_view))) == NULL)
-		return;
-	if((selected = gtk_tree_selection_get_selected_rows(treesel, NULL))
-			== NULL)
+	if((selected = _mailer_get_selected_headers(mailer)) == NULL)
 		return;
 	/* FIXME move messages to trash first */
 	if(_mailer_confirm(mailer, _("The messages selected will be deleted.\n"
@@ -1467,6 +1466,44 @@ static void _reply_selected_to_all(Mailer * mailer, GtkTreeModel * model,
 {
 	/* FIXME really implement */
 	_reply_selected(mailer, model, iter);
+}
+
+
+/* mailer_save_selected */
+gboolean mailer_save_selected(Mailer * mailer, char const * filename)
+{
+	if(mailer->message_cur == NULL)
+		return TRUE;
+	if(filename == NULL)
+		return mailer_save_selected_dialog(mailer);
+	return (message_save(mailer->message_cur, filename) == 0)
+		? TRUE : FALSE;
+}
+
+
+/* mailer_save_selected_dialog */
+gboolean mailer_save_selected_dialog(Mailer * mailer)
+{
+	gboolean ret;
+	GtkWidget * dialog;
+	char * filename = NULL;
+
+	if(mailer->message_cur == NULL)
+		return TRUE;
+	dialog = gtk_file_chooser_dialog_new(_("Save as..."),
+			GTK_WINDOW(mailer->he_window),
+			GTK_FILE_CHOOSER_ACTION_SAVE,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	gtk_widget_destroy(dialog);
+	if(filename == NULL)
+		return FALSE;
+	ret = mailer_save_selected(mailer, filename);
+	g_free(filename);
+	return ret;
 }
 
 
@@ -3012,6 +3049,22 @@ static char const * _mailer_get_font(Mailer * mailer)
 	if((p = config_get(mailer->config, NULL, "messages_font")) != NULL)
 		return p;
 	return MAILER_MESSAGES_FONT;
+}
+
+
+/* mailer_get_selected_headers */
+static GList * _mailer_get_selected_headers(Mailer * mailer)
+{
+	GtkTreeModel * model;
+	GtkTreeSelection * treesel;
+
+	if((model = gtk_tree_view_get_model(GTK_TREE_VIEW(mailer->he_view)))
+			== NULL)
+		return NULL;
+	if((treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(
+						mailer->he_view))) == NULL)
+		return NULL;
+	return gtk_tree_selection_get_selected_rows(treesel, NULL);
 }
 
 

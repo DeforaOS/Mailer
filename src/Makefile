@@ -14,6 +14,7 @@ AR	?= ar
 RANLIB	?= ranlib
 CCSHARED?= $(CC) -shared
 BINDIR	= $(PREFIX)/bin
+SBINDIR	= $(PREFIX)/sbin
 RM	?= rm -f
 LN	?= ln -f
 MKDIR	?= mkdir -p

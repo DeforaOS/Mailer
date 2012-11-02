@@ -66,6 +66,9 @@ void mailer_open_selected_source(Mailer * mailer);
 void mailer_reply_selected(Mailer * mailer);
 void mailer_reply_selected_to_all(Mailer * mailer);
 
+gboolean mailer_save_selected(Mailer * mailer, char const * filename);
+gboolean mailer_save_selected_dialog(Mailer * mailer);
+
 void mailer_select_all(Mailer * mailer);
 void mailer_unselect_all(Mailer * mailer);
 

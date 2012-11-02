@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <Desktop.h>
 #include "compose.h"
 #include "mailer.h"
 #include "callbacks.h"
@@ -117,6 +118,14 @@ void on_message_reply_to_all(gpointer data)
 void on_message_forward(gpointer data)
 {
 	on_forward(data);
+}
+
+
+void on_message_save_as(gpointer data)
+{
+	Mailer * mailer = data;
+
+	mailer_save_selected_dialog(mailer);
 }
 
 
