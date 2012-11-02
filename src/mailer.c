@@ -3083,12 +3083,12 @@ static int _mailer_config_load_account(Mailer * mailer, char const * name)
 	if((account = account_new(mailer, type, name, mailer->fo_store))
 			== NULL)
 		return -mailer_error(mailer, error_get(), 1);
-	if(mailer_account_add(mailer, account) != 0)
+	if(account_config_load(account, mailer->config) != 0
+			|| mailer_account_add(mailer, account) != 0)
 	{
 		account_delete(account);
 		return -1;
 	}
-	account_config_load(account, mailer->config);
 	return 0;
 }
 

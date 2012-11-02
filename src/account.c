@@ -134,7 +134,9 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 	account->plugin = plugin_new(LIBDIR, PACKAGE, "account", type);
 	account->definition = (account->plugin != NULL)
 		? plugin_lookup(account->plugin, "account_plugin") : NULL;
+	/* check for errors */
 	if(account->type == NULL || account->plugin == NULL
+			|| (title != NULL && account->title == NULL)
 			|| account->definition == NULL
 			|| account->definition->init == NULL
 			|| account->definition->destroy == NULL
@@ -258,9 +260,9 @@ int account_config_load(Account * account, Config * config)
 	long l;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: account_config_load(%p)\n", (void*)config);
+	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void *)config);
 #endif
-	if(p == NULL)
+	if(p == NULL || account->title == NULL)
 		return 0;
 	for(; p->name != NULL; p++)
 	{
@@ -279,7 +281,7 @@ int account_config_load(Account * account, Config * config)
 			case ACT_UINT16:
 				l = strtol(value, &q, 0);
 				if(value[0] != '\0' && *q == '\0')
-					p->value = (void*)l;
+					p->value = (void *)l;
 				break;
 			case ACT_BOOLEAN:
 				p->value = (strcmp(value, "yes") == 0
@@ -303,8 +305,10 @@ int account_config_save(Account * account, Config * config)
 	char buf[6];
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: account_config_save(%p)\n", (void*)config);
+	fprintf(stderr, "DEBUG: account_config_save(%p)\n", (void *)config);
 #endif
+	if(account->title == NULL)
+		return 0;
 	if(config_set(config, account->title, "type", account->type) != 0)
 		return 1;
 	if(p == NULL)
@@ -347,7 +351,7 @@ int account_config_save(Account * account, Config * config)
 int account_init(Account * account)
 {
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void*)account);
+	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void *)account);
 #endif
 	return (account->account = account->definition->init(&account->helper))
 		!= NULL ? 0 : -1;
@@ -387,7 +391,7 @@ GtkTextBuffer * account_select_source(Account * account, Folder * folder,
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(\"%s\", %p)\n", __func__,
-			folder_get_name(folder), (void*)message);
+			folder_get_name(folder), (void *)message);
 #endif
 	if(account->definition->get_source == NULL)
 		return NULL;
