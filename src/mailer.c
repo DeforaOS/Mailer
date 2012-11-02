@@ -305,6 +305,7 @@ static gboolean _mailer_confirm(Mailer * mailer, char const * message);
 static void _mailer_foreach_message_selected(Mailer * mailer,
 		MailerForeachMessageCallback callback);
 static void _mailer_refresh_plugin(Mailer * mailer);
+static void _mailer_refresh_title(Mailer * mailer);
 static void _mailer_update_status(Mailer * mailer);
 static void _mailer_update_view(Mailer * mailer);
 
@@ -383,7 +384,7 @@ Mailer * mailer_new(void)
 	gtk_window_add_accel_group(GTK_WINDOW(mailer->fo_window), group);
 #ifndef EMBEDDED
 	gtk_window_set_default_size(GTK_WINDOW(mailer->fo_window), 800, 600);
-	gtk_window_set_title(GTK_WINDOW(mailer->fo_window), _(PACKAGE));
+	gtk_window_set_title(GTK_WINDOW(mailer->fo_window), PACKAGE);
 #else
 	gtk_window_set_default_size(GTK_WINDOW(mailer->fo_window), 200, 300);
 	gtk_window_set_title(GTK_WINDOW(mailer->fo_window),
@@ -3164,6 +3165,19 @@ static void _mailer_refresh_plugin(Mailer * mailer)
 }
 
 
+/* mailer_refresh_title */
+static void _mailer_refresh_title(Mailer * mailer)
+{
+	char buf[80];
+
+	snprintf(buf, sizeof(buf), "%s%s%s", PACKAGE,
+			(mailer->folder_cur != NULL) ? " - " : "",
+			(mailer->folder_cur != NULL) ? folder_get_name(
+				mailer->folder_cur) : "");
+	gtk_window_set_title(GTK_WINDOW(mailer->he_window), buf);
+}
+
+
 /* mailer_update_status */
 static void _mailer_update_status(Mailer * mailer)
 {
@@ -3208,6 +3222,7 @@ static void _mailer_update_view(Mailer * mailer)
 		model = NULL;
 	gtk_tree_view_set_model(GTK_TREE_VIEW(mailer->he_view), model);
 	_mailer_refresh_plugin(mailer);
+	_mailer_refresh_title(mailer);
 	_mailer_update_status(mailer);
 }
 
