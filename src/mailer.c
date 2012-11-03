@@ -3170,10 +3170,14 @@ static void _mailer_refresh_title(Mailer * mailer)
 {
 	char buf[80];
 
-	snprintf(buf, sizeof(buf), "%s%s%s", PACKAGE,
-			(mailer->folder_cur != NULL) ? " - " : "",
-			(mailer->folder_cur != NULL) ? folder_get_name(
-				mailer->folder_cur) : "");
+	if(mailer->folder_cur == NULL)
+	{
+		gtk_window_set_title(GTK_WINDOW(mailer->he_window), PACKAGE);
+		return;
+	}
+	snprintf(buf, sizeof(buf), "%s - %s (%s)", PACKAGE,
+			folder_get_name(mailer->folder_cur),
+			account_get_title(mailer->account_cur));
 	gtk_window_set_title(GTK_WINDOW(mailer->he_window), buf);
 }
 
