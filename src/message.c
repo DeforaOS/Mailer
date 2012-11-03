@@ -351,7 +351,12 @@ static int _save_from(MailerMessage * message, FILE * fp)
 
 	if((p = message_get_header(message, "From")) == NULL)
 		p = "unknown-sender";
-	if(fputs("From ", fp) != 0 || fputs(p, fp) != 0 || fputs("\n", fp) != 0)
+	if(fputs("From ", fp) != 0 || fputs(p, fp) != 0)
+		return -1;
+	if((p = message_get_header(message, "Date")) != NULL)
+		if(fputs(" ", fp) != 0 || fputs(p, fp) != 0)
+			return -1;
+	if(fputs("\n", fp) != 0)
 		return -1;
 	return 0;
 }
