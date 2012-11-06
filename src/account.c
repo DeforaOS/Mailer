@@ -441,6 +441,8 @@ static int _account_helper_error(Account * account, char const * message,
 
 
 /* account_helper_event */
+static void _helper_event_status(Account * account, AccountEvent * event);
+
 static void _account_helper_event(Account * account, AccountEvent * event)
 {
 	Mailer * mailer = account->mailer;
@@ -451,9 +453,28 @@ static void _account_helper_event(Account * account, AccountEvent * event)
 			mailer_error(mailer, event->error.message, 1);
 			break;
 		case AET_STATUS:
-			mailer_set_status(mailer, event->status.message);
+			_helper_event_status(account, event);
 			break;
 	}
+}
+
+static void _helper_event_status(Account * account, AccountEvent * event)
+{
+	Mailer * mailer = account->mailer;
+	char const * message = event->status.message;
+
+	if(message == NULL)
+		switch(event->status.status)
+		{
+			case AS_IDLE:
+				message = "Ready";
+				break;
+			default:
+				break;
+		}
+	if(message == NULL)
+		return;
+	mailer_set_status(mailer, message);
 }
 
 

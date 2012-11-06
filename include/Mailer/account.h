@@ -66,7 +66,7 @@ typedef enum _AccountStatus
 	AS_CONNECTED,
 	AS_DISCONNECTED,
 	AS_AUTHENTICATED,
-	AS_READY
+	AS_IDLE
 } AccountStatus;
 
 

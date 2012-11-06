@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 /* FIXME:
  * - do not erroneously parse body/header data as potential command completion
+ * - do not fetch messages when there are none available in the first place
  * - openssl should be more explicit when SSL_set_fd() is missing (no BIO)
  * - support multiple connections? */
 
@@ -197,6 +198,10 @@ static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
 		struct sockaddr_in * sa);
 static int _imap4_parse(IMAP4 * imap4);
 static void _imap4_reset(IMAP4 * imap4);
+
+/* events */
+static void _imap4_event_status(IMAP4 * imap4, AccountStatus status,
+		char const * message);
 
 /* folders */
 static AccountFolder * _imap4_folder_new(IMAP4 * imap4, AccountFolder * parent,
@@ -792,6 +797,21 @@ static void _imap4_reset(IMAP4 * imap4)
 }
 
 
+/* imap4_event_status */
+static void _imap4_event_status(IMAP4 * imap4, AccountStatus status,
+		char const * message)
+{
+	AccountPluginHelper * helper = imap4->helper;
+	AccountEvent event;
+
+	memset(&event, 0, sizeof(event));
+	event.status.type = AET_STATUS;
+	event.status.status = status;
+	event.status.message = message;
+	helper->event(helper->account, &event);
+}
+
+
 /* imap4_folder_new */
 static AccountFolder * _imap4_folder_new(IMAP4 * imap4, AccountFolder * parent,
 		char const * name)
@@ -944,7 +964,6 @@ static gboolean _on_connect(gpointer data)
 {
 	IMAP4 * imap4 = data;
 	AccountPluginHelper * helper = imap4->helper;
-	AccountEvent event;
 	char const * hostname;
 	char const * p;
 	uint16_t port;
@@ -982,13 +1001,9 @@ static gboolean _on_connect(gpointer data)
 		/* ignore this error */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	memset(&event, 0, sizeof(event));
-	event.status.type = AET_STATUS;
-	event.status.status = AS_CONNECTING;
 	snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
 			inet_ntoa(sa.sin_addr), port);
-	event.status.message = buf;
-	helper->event(helper->account, &event);
+	_imap4_event_status(imap4, AS_CONNECTING, buf);
 	/* connect to the remote host */
 	if((connect(imap4->fd, (struct sockaddr *)&sa, sizeof(sa)) != 0
 				&& errno != EINPROGRESS)
@@ -1059,7 +1074,6 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 {
 	IMAP4 * imap4 = data;
 	AccountPluginHelper * helper = imap4->helper;
-	AccountEvent event;
 	char const * hostname = imap4->config[I4CV_HOSTNAME].value;
 	uint16_t port = (unsigned long)imap4->config[I4CV_PORT].value;
 	struct sockaddr_in sa;
@@ -1074,14 +1088,9 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	/* XXX remember the address instead */
 	if(_imap4_lookup(imap4, hostname, port, &sa) == 0)
 	{
-		/* report the current status */
-		memset(&event, 0, sizeof(event));
-		event.status.type = AET_STATUS;
-		event.status.status = AS_CONNECTED;
 		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
 				hostname, inet_ntoa(sa.sin_addr), port);
-		event.status.message = buf;
-		helper->event(helper->account, &event);
+		_imap4_event_status(imap4, AS_CONNECTED, buf);
 	}
 	imap4->wr_source = 0;
 	/* setup SSL */
@@ -1245,7 +1254,10 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 	}
 	imap4->rd_source = 0;
 	if(imap4->queue_cnt == 0)
+	{
+		_imap4_event_status(imap4, AS_IDLE, NULL);
 		imap4->source = g_timeout_add(30000, _on_noop, imap4);
+	}
 	else
 		imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
 				_on_watch_can_write, imap4);
@@ -1318,7 +1330,10 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	}
 	imap4->rd_source = 0;
 	if(imap4->queue_cnt == 0)
+	{
+		_imap4_event_status(imap4, AS_IDLE, NULL);
 		imap4->source = g_timeout_add(30000, _on_noop, imap4);
+	}
 	else
 		imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
 				_on_watch_can_write_ssl, imap4);
