@@ -652,7 +652,9 @@ static gboolean _on_connect(gpointer data)
 				&& errno != EINPROGRESS)
 			|| _connect_channel(pop3) != 0)
 	{
-		helper->error(NULL, strerror(errno), 1);
+		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
+				strerror(errno));
+		helper->error(NULL, buf, 1);
 		return _on_reset(pop3);
 	}
 	pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
@@ -731,7 +733,9 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	if(getsockopt(pop3->fd, SOL_SOCKET, SO_ERROR, &res, &s) != 0
 			|| res != 0)
 	{
-		helper->error(NULL, strerror(errno), 1);
+		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
+				strerror(errno));
+		helper->error(NULL, buf, 1);
 		return FALSE;
 	}
 	/* XXX remember the address instead */
