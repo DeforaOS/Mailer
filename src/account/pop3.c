@@ -161,6 +161,10 @@ static int _pop3_lookup(POP3 * pop3, char const * hostname, uint16_t port,
 static int _pop3_parse(POP3 * pop3);
 static void _pop3_reset(POP3 * pop3);
 
+/* events */
+static void _pop3_event_status(POP3 * pop3, AccountStatus status,
+		char const * message);
+
 static AccountMessage * _pop3_message_get(POP3 * pop3,
 		AccountFolder * folder, unsigned int id);
 static AccountMessage * _pop3_message_new(POP3 * pop3,
@@ -531,6 +535,21 @@ static void _pop3_reset(POP3 * pop3)
 }
 
 
+/* pop3_event_status */
+static void _pop3_event_status(POP3 * pop3, AccountStatus status,
+		char const * message)
+{
+	AccountPluginHelper * helper = pop3->helper;
+	AccountEvent event;
+
+	memset(&event, 0, sizeof(event));
+	event.status.type = AET_STATUS;
+	event.status.status = status;
+	event.status.message = message;
+	helper->event(helper->account, &event);
+}
+
+
 /* pop3_message_get */
 static AccountMessage * _pop3_message_get(POP3 * pop3,
 		AccountFolder * folder, unsigned int id)
@@ -588,7 +607,6 @@ static gboolean _on_connect(gpointer data)
 {
 	POP3 * pop3 = data;
 	AccountPluginHelper * helper = pop3->helper;
-	AccountEvent event;
 	char const * hostname;
 	char const * p;
 	uint16_t port;
@@ -626,13 +644,9 @@ static gboolean _on_connect(gpointer data)
 		/* ignore this error */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	memset(&event, 0, sizeof(event));
-	event.status.type = AET_STATUS;
-	event.status.status = AS_CONNECTING;
 	snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
 			inet_ntoa(sa.sin_addr), port);
-	event.status.message = buf;
-	helper->event(helper->account, &event);
+	_pop3_event_status(pop3, AS_CONNECTING, buf);
 	/* connect to the remote host */
 	if((connect(pop3->fd, (struct sockaddr *)&sa, sizeof(sa)) != 0
 				&& errno != EINPROGRESS)
@@ -701,7 +715,6 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 {
 	POP3 * pop3 = data;
 	AccountPluginHelper * helper = pop3->helper;
-	AccountEvent event;
 	char const * hostname = pop3->config[P3CV_HOSTNAME].value;
 	uint16_t port = (unsigned long)pop3->config[P3CV_PORT].value;
 	struct sockaddr_in sa;
@@ -716,14 +729,9 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	/* XXX remember the address instead */
 	if(_pop3_lookup(pop3, hostname, port, &sa) == 0)
 	{
-		/* report the current status */
-		memset(&event, 0, sizeof(event));
-		event.status.type = AET_STATUS;
-		event.status.status = AS_CONNECTED;
 		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
 				hostname, inet_ntoa(sa.sin_addr), port);
-		event.status.message = buf;
-		helper->event(helper->account, &event);
+		_pop3_event_status(pop3, AS_CONNECTED, buf);
 	}
 	pop3->wr_source = 0;
 	/* setup SSL */
@@ -876,14 +884,19 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 	if(cmd->buf_cnt == 0)
 	{
 		if(cmd->status == P3CS_SENT || cmd->status == P3CS_PARSING)
+			/* begin or keep parsing */
 			return TRUE;
 		else if(cmd->status == P3CS_OK || cmd->status == P3CS_ERROR)
+			/* the current command is completed */
 			memmove(cmd, &pop3->queue[1], sizeof(*cmd)
 					* --pop3->queue_cnt);
 	}
 	pop3->rd_source = 0;
 	if(pop3->queue_cnt == 0)
+	{
+		_pop3_event_status(pop3, AS_IDLE, NULL);
 		pop3->source = g_timeout_add(30000, _on_noop, pop3);
+	}
 	else
 		pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
 				_on_watch_can_write, pop3);
@@ -947,14 +960,19 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	if(cmd->buf_cnt == 0)
 	{
 		if(cmd->status == P3CS_SENT || cmd->status == P3CS_PARSING)
+			/* begin or keep parsing */
 			return TRUE;
 		else if(cmd->status == P3CS_OK || cmd->status == P3CS_ERROR)
+			/* the current command is completed */
 			memmove(cmd, &pop3->queue[1], sizeof(*cmd)
 					* --pop3->queue_cnt);
 	}
 	pop3->rd_source = 0;
 	if(pop3->queue_cnt == 0)
+	{
+		_pop3_event_status(pop3, AS_IDLE, NULL);
 		pop3->source = g_timeout_add(30000, _on_noop, pop3);
+	}
 	else
 		pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
 				_on_watch_can_write_ssl, pop3);

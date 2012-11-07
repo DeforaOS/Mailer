@@ -1138,12 +1138,12 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 	int err;
 	char buf[128];
 
-#ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s()\n", __func__);
-#endif
 	if((condition != G_IO_IN && condition != G_IO_OUT)
 			|| source != imap4->channel || imap4->ssl == NULL)
 		return FALSE; /* should not happen */
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	imap4->wr_source = 0;
 	imap4->rd_source = 0;
 	if((res = SSL_do_handshake(imap4->ssl)) == 1)
@@ -1247,8 +1247,10 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 	if(cmd->buf_cnt == 0)
 	{
 		if(cmd->status == I4CS_SENT || cmd->status == I4CS_PARSING)
+			/* begin or keep parsing */
 			return TRUE;
 		else if(cmd->status == I4CS_OK || cmd->status == I4CS_ERROR)
+			/* the current command is completed */
 			memmove(cmd, &imap4->queue[1], sizeof(*cmd)
 					* --imap4->queue_cnt);
 	}
@@ -1323,8 +1325,10 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	if(cmd->buf_cnt == 0)
 	{
 		if(cmd->status == I4CS_SENT || cmd->status == I4CS_PARSING)
+			/* begin or keep parsing */
 			return TRUE;
 		else if(cmd->status == I4CS_OK || cmd->status == I4CS_ERROR)
+			/* the current command is completed */
 			memmove(cmd, &imap4->queue[1], sizeof(*cmd)
 					* --imap4->queue_cnt);
 	}
