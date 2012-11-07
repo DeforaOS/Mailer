@@ -1074,6 +1074,8 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 {
 	IMAP4 * imap4 = data;
 	AccountPluginHelper * helper = imap4->helper;
+	int res;
+	socklen_t s = sizeof(res);
 	char const * hostname = imap4->config[I4CV_HOSTNAME].value;
 	uint16_t port = (unsigned long)imap4->config[I4CV_PORT].value;
 	struct sockaddr_in sa;
@@ -1085,6 +1087,12 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() connected\n", __func__);
 #endif
+	if(getsockopt(imap4->fd, SOL_SOCKET, SO_ERROR, &res, &s) != 0
+			|| res != 0)
+	{
+		helper->error(NULL, strerror(errno), 1);
+		return FALSE;
+	}
 	/* XXX remember the address instead */
 	if(_imap4_lookup(imap4, hostname, port, &sa) == 0)
 	{
