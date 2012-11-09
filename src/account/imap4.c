@@ -1093,7 +1093,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 			|| res != 0)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
-				strerror(errno));
+				strerror(res));
 		helper->error(NULL, buf, 1);
 		return FALSE;
 	}
