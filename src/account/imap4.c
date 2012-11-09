@@ -987,13 +987,13 @@ static gboolean _on_connect(gpointer data)
 	/* lookup the address */
 	if(_imap4_lookup(imap4, hostname, port, &sa) != 0)
 	{
-		helper->error(NULL, error_get(), 1);
+		helper->error(helper->account, error_get(), 1);
 		return FALSE;
 	}
 	/* create the socket */
 	if((imap4->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		helper->error(NULL, strerror(errno), 1);
+		helper->error(helper->account, strerror(errno), 1);
 		return _on_reset(imap4);
 	}
 	if((res = fcntl(imap4->fd, F_GETFL)) >= 0
@@ -1011,7 +1011,7 @@ static gboolean _on_connect(gpointer data)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(errno));
-		helper->error(NULL, buf, 1);
+		helper->error(helper->account, buf, 1);
 		return _on_reset(imap4);
 	}
 	imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
@@ -1094,7 +1094,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(res));
-		helper->error(NULL, buf, 1);
+		helper->error(helper->account, buf, 1);
 		return FALSE;
 	}
 	/* XXX remember the address instead */
@@ -1113,14 +1113,14 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 			return FALSE;
 		if((imap4->ssl = SSL_new(ssl_ctx)) == NULL)
 		{
-			helper->error(NULL, ERR_error_string(ERR_get_error(),
-						buf), 1);
+			helper->error(helper->account, ERR_error_string(
+						ERR_get_error(), buf), 1);
 			return FALSE;
 		}
 		if(SSL_set_fd(imap4->ssl, imap4->fd) != 1)
 		{
-			helper->error(NULL, ERR_error_string(ERR_get_error(),
-						buf), 1);
+			helper->error(helper->account, ERR_error_string(
+						ERR_get_error(), buf), 1);
 			SSL_free(imap4->ssl);
 			imap4->ssl = NULL;
 			return FALSE;
@@ -1212,6 +1212,7 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		gpointer data)
 {
 	IMAP4 * imap4 = data;
+	AccountPluginHelper * helper = imap4->helper;
 	char * p;
 	gsize cnt = 0;
 	GError * error = NULL;
@@ -1239,7 +1240,7 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			imap4->helper->error(NULL, error->message, 1);
+			helper->error(helper->account, error->message, 1);
 		case G_IO_STATUS_EOF:
 		default:
 			imap4->rd_source = g_idle_add(_on_reset, imap4);
@@ -1313,7 +1314,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
-			imap4->helper->error(NULL, buf, 1);
+			imap4->helper->error(imap4->helper->account, buf, 1);
 			imap4->rd_source = g_idle_add(_on_reset, imap4);
 		}
 		return FALSE;
@@ -1362,6 +1363,7 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		gpointer data)
 {
 	IMAP4 * imap4 = data;
+	AccountPluginHelper * helper = imap4->helper;
 	IMAP4Command * cmd = &imap4->queue[0];
 	gsize cnt = 0;
 	GError * error = NULL;
@@ -1394,7 +1396,7 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			imap4->helper->error(NULL, error->message, 1);
+			helper->error(helper->account, error->message, 1);
 		case G_IO_STATUS_EOF:
 		default:
 			imap4->wr_source = g_idle_add(_on_reset, imap4);
@@ -1416,6 +1418,7 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		GIOCondition condition, gpointer data)
 {
 	IMAP4 * imap4 = data;
+	AccountPluginHelper * helper = imap4->helper;
 	IMAP4Command * cmd = &imap4->queue[0];
 	int cnt;
 	char * p;
@@ -1441,7 +1444,7 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
-			imap4->helper->error(NULL, buf, 1);
+			helper->error(helper->account, buf, 1);
 			imap4->wr_source = g_idle_add(_on_reset, imap4);
 		}
 		return FALSE;
