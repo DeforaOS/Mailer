@@ -48,5 +48,7 @@ AccountPluginDefinition account_plugin =
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
 	NULL
 };

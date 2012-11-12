@@ -1074,6 +1074,8 @@ int mailer_account_add(Mailer * mailer, Account * account)
 	if(account_init(account) != 0)
 		return -mailer_error(mailer, account_get_title(account), 1);
 	mailer->account_cnt++;
+	/* XXX check (and report) errors */
+	account_start(account);
 	return 0;
 }
 

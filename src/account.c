@@ -358,6 +358,16 @@ int account_init(Account * account)
 }
 
 
+/* account_quit */
+int account_quit(Account * account)
+{
+	/* FIXME untested */
+	account->definition->destroy(account->account);
+	account->account = NULL;
+	return 0;
+}
+
+
 /* account_select */
 GtkTextBuffer * account_select(Account * account, Folder * folder,
 		Message * message)
@@ -404,6 +414,27 @@ GtkTextBuffer * account_select_source(Account * account, Folder * folder,
 		free(p);
 	}
 	return ret;
+}
+
+
+/* account_start */
+int account_start(Account * account)
+{
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void *)account);
+#endif
+	if(account->definition->start == NULL)
+		return 0;
+	return account->definition->start(account->account);
+}
+
+
+/* account_stop */
+void account_stop(Account * account)
+{
+	if(account->definition->stop == NULL)
+		return;
+	account->definition->stop(account->account);
 }
 
 

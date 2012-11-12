@@ -144,6 +144,8 @@ AccountPluginDefinition account_plugin =
 	_mbox_destroy,
 	_mbox_get_config,
 	_mbox_get_source,
+	NULL,
+	NULL,
 	_mbox_refresh
 };
 

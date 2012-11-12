@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 /* FIXME:
  * - really queue commands with callbacks
+ * - openssl should be more explicit when SSL_set_fd() is missing (no BIO)
  * - support multiple connections? */
 
 
@@ -30,6 +31,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <openssl/err.h>
+#include <openssl/x509.h>
 #include <glib.h>
 #include <System.h>
 #include "Mailer/account.h"
@@ -150,6 +152,8 @@ static AccountConfig _pop3_config[P3CV_COUNT + 1] =
 static POP3 * _pop3_init(AccountPluginHelper * helper);
 static int _pop3_destroy(POP3 * pop3);
 static AccountConfig * _pop3_get_config(POP3 * pop3);
+static int _pop3_start(POP3 * pop3);
+static void _pop3_stop(POP3 * pop3);
 static int _pop3_refresh(POP3 * pop3, AccountFolder * folder,
 		AccountMessage * message);
 
@@ -159,7 +163,6 @@ static POP3Command * _pop3_command(POP3 * pop3, POP3Context context,
 static int _pop3_lookup(POP3 * pop3, char const * hostname, uint16_t port,
 		struct sockaddr_in * sa);
 static int _pop3_parse(POP3 * pop3);
-static void _pop3_reset(POP3 * pop3);
 
 /* events */
 static void _pop3_event_status(POP3 * pop3, AccountStatus status,
@@ -203,12 +206,15 @@ AccountPluginDefinition account_plugin =
 	_pop3_destroy,
 	_pop3_get_config,
 	NULL,
+	_pop3_start,
+	_pop3_stop,
 	_pop3_refresh
 };
 
 
-/* private */
+/* protected */
 /* functions */
+/* plug-in */
 /* pop3_init */
 static POP3 * _pop3_init(AccountPluginHelper * helper)
 {
@@ -243,7 +249,7 @@ static int _pop3_destroy(POP3 * pop3)
 
 	if(pop3 == NULL) /* XXX _pop3_destroy() may be called uninitialized */
 		return 0;
-	_pop3_reset(pop3);
+	_pop3_stop(pop3);
 	free(pop3);
 	return 0;
 }
@@ -253,6 +259,46 @@ static int _pop3_destroy(POP3 * pop3)
 static AccountConfig * _pop3_get_config(POP3 * pop3)
 {
 	return pop3->config;
+}
+
+
+/* pop3_start */
+static int _pop3_start(POP3 * pop3)
+{
+	if(pop3->fd >= 0)
+		/* already started */
+		return 0;
+	pop3->source = g_idle_add(_on_connect, pop3);
+	return 0;
+}
+
+
+/* pop3_stop */
+static void _pop3_stop(POP3 * pop3)
+{
+	size_t i;
+
+	if(pop3->ssl != NULL)
+		SSL_free(pop3->ssl);
+	pop3->ssl = NULL;
+	if(pop3->rd_source != 0)
+		g_source_remove(pop3->rd_source);
+	free(pop3->rd_buf);
+	if(pop3->wr_source != 0)
+		g_source_remove(pop3->wr_source);
+	if(pop3->source != 0)
+		g_source_remove(pop3->source);
+	if(pop3->channel != NULL)
+	{
+		g_io_channel_shutdown(pop3->channel, TRUE, NULL);
+		g_io_channel_unref(pop3->channel);
+		pop3->fd = -1;
+	}
+	for(i = 0; i < pop3->queue_cnt; i++)
+		free(pop3->queue[i].buf);
+	free(pop3->queue);
+	if(pop3->fd >= 0)
+		close(pop3->fd);
 }
 
 
@@ -273,6 +319,8 @@ static int _pop3_refresh(POP3 * pop3, AccountFolder * folder,
 }
 
 
+/* private */
+/* functions */
 /* useful */
 /* pop3_command */
 static POP3Command * _pop3_command(POP3 * pop3, POP3Context context,
@@ -506,35 +554,6 @@ static int _parse_context_transaction_retr(POP3 * pop3,
 }
 
 
-/* pop3_reset */
-static void _pop3_reset(POP3 * pop3)
-{
-	size_t i;
-
-	if(pop3->ssl != NULL)
-		SSL_free(pop3->ssl);
-	pop3->ssl = NULL;
-	if(pop3->rd_source != 0)
-		g_source_remove(pop3->rd_source);
-	free(pop3->rd_buf);
-	if(pop3->wr_source != 0)
-		g_source_remove(pop3->wr_source);
-	if(pop3->source != 0)
-		g_source_remove(pop3->source);
-	if(pop3->channel != NULL)
-	{
-		g_io_channel_shutdown(pop3->channel, TRUE, NULL);
-		g_io_channel_unref(pop3->channel);
-		pop3->fd = -1;
-	}
-	for(i = 0; i < pop3->queue_cnt; i++)
-		free(pop3->queue[i].buf);
-	free(pop3->queue);
-	if(pop3->fd >= 0)
-		close(pop3->fd);
-}
-
-
 /* pop3_event_status */
 static void _pop3_event_status(POP3 * pop3, AccountStatus status,
 		char const * message)
@@ -621,7 +640,7 @@ static gboolean _on_connect(gpointer data)
 	/* get the hostname and port */
 	if((hostname = pop3->config[P3CV_HOSTNAME].value) == NULL)
 	{
-		helper->error(NULL, "No hostname set", 1);
+		helper->error(helper->account, "No hostname set", 1);
 		return FALSE;
 	}
 	if((p = pop3->config[P3CV_PORT].value) == NULL)
@@ -630,18 +649,20 @@ static gboolean _on_connect(gpointer data)
 	/* lookup the address */
 	if(_pop3_lookup(pop3, hostname, port, &sa) != 0)
 	{
-		helper->error(NULL, error_get(), 1);
+		helper->error(helper->account, error_get(), 1);
 		return FALSE;
 	}
 	/* create the socket */
 	if((pop3->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		helper->error(NULL, strerror(errno), 1);
-		return _on_reset(pop3);
+		pop3->source = g_idle_add(_on_reset, pop3);
+		helper->error(helper->account, strerror(errno), 1);
+		return FALSE;
 	}
 	if((res = fcntl(pop3->fd, F_GETFL)) >= 0
 			&& fcntl(pop3->fd, F_SETFL, res | O_NONBLOCK) == -1)
 		/* ignore this error */
+		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
 	snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
@@ -654,8 +675,9 @@ static gboolean _on_connect(gpointer data)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(errno));
-		helper->error(NULL, buf, 1);
-		return _on_reset(pop3);
+		pop3->source = g_idle_add(_on_reset, pop3);
+		helper->error(helper->account, buf, 1);
+		return FALSE;
 	}
 	pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
 			_on_watch_can_connect, pop3);
@@ -668,7 +690,7 @@ static int _connect_channel(POP3 * pop3)
 	GError * error = NULL;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s()\n");
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
 	/* prepare queue */
 	if((pop3->queue = malloc(sizeof(*pop3->queue))) == NULL)
@@ -705,7 +727,7 @@ static gboolean _on_reset(gpointer data)
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
-	_pop3_reset(pop3);
+	_pop3_stop(pop3);
 	pop3->source = g_timeout_add(3000, _on_connect, pop3);
 	return FALSE;
 }
@@ -735,7 +757,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(res));
-		helper->error(NULL, buf, 1);
+		helper->error(helper->account, buf, 1);
 		return FALSE;
 	}
 	/* XXX remember the address instead */
@@ -754,16 +776,16 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 			return FALSE;
 		if((pop3->ssl = SSL_new(ssl_ctx)) == NULL)
 		{
-			helper->error(NULL, ERR_error_string(ERR_get_error(),
-						buf), 1);
+			helper->error(helper->account, ERR_error_string(
+						ERR_get_error(), buf), 1);
 			return FALSE;
 		}
 		if(SSL_set_fd(pop3->ssl, pop3->fd) != 1)
 		{
-			helper->error(NULL, ERR_error_string(ERR_get_error(),
-						buf), 1);
+			ERR_error_string(ERR_get_error(), buf);
 			SSL_free(pop3->ssl);
 			pop3->ssl = NULL;
+			helper->error(helper->account, buf, 1);
 			return FALSE;
 		}
 		SSL_set_connect_state(pop3->ssl);
@@ -812,8 +834,9 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 	ERR_error_string(err, buf);
 	if(res == 0)
 	{
+		pop3->source = g_idle_add(_on_reset, pop3);
 		helper->error(helper->account, buf, 1);
-		return _on_reset(pop3);
+		return FALSE;
 	}
 	if(err == SSL_ERROR_WANT_WRITE)
 		pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
@@ -823,8 +846,9 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 				_on_watch_can_handshake, pop3);
 	else
 	{
+		pop3->source = g_idle_add(_on_reset, pop3);
 		helper->error(helper->account, buf, 1);
-		return _on_reset(pop3);
+		return FALSE;
 	}
 	return FALSE;
 }
@@ -853,6 +877,7 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		gpointer data)
 {
 	POP3 * pop3 = data;
+	AccountPluginHelper * helper = pop3->helper;
 	char * p;
 	gsize cnt = 0;
 	GError * error = NULL;
@@ -876,15 +901,17 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			pop3->helper->error(NULL, error->message, 1);
+			pop3->source = g_idle_add(_on_reset, pop3);
+			helper->error(helper->account, error->message, 1);
+			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
-			pop3->rd_source = g_idle_add(_on_reset, pop3);
+			pop3->source = g_idle_add(_on_reset, pop3);
 			return FALSE;
 	}
 	if(_pop3_parse(pop3) != 0)
 	{
-		pop3->rd_source = g_idle_add(_on_reset, pop3);
+		pop3->source = g_idle_add(_on_reset, pop3);
 		return FALSE;
 	}
 	if(pop3->queue_cnt == 0)
@@ -948,8 +975,8 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(pop3->ssl, cnt), buf);
-			pop3->helper->error(NULL, buf, 1);
-			pop3->rd_source = g_idle_add(_on_reset, pop3);
+			pop3->source = g_idle_add(_on_reset, pop3);
+			pop3->helper->error(pop3->helper->account, buf, 1);
 		}
 		return FALSE;
 	}
@@ -960,7 +987,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	pop3->rd_buf_cnt += cnt;
 	if(_pop3_parse(pop3) != 0)
 	{
-		pop3->rd_source = g_idle_add(_on_reset, pop3);
+		pop3->source = g_idle_add(_on_reset, pop3);
 		return FALSE;
 	}
 	if(pop3->queue_cnt == 0)
@@ -997,6 +1024,7 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		gpointer data)
 {
 	POP3 * pop3 = data;
+	AccountPluginHelper * helper = pop3->helper;
 	POP3Command * cmd = &pop3->queue[0];
 	gsize cnt = 0;
 	GError * error = NULL;
@@ -1029,10 +1057,12 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			pop3->helper->error(NULL, error->message, 1);
+			pop3->source = g_idle_add(_on_reset, pop3);
+			helper->error(helper->account, error->message, 1);
+			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
-			pop3->wr_source = g_idle_add(_on_reset, pop3);
+			pop3->source = g_idle_add(_on_reset, pop3);
 			return FALSE;
 	}
 	if(cmd->buf_cnt > 0)
@@ -1051,6 +1081,7 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		GIOCondition condition, gpointer data)
 {
 	POP3 * pop3 = data;
+	AccountPluginHelper * helper = pop3->helper;
 	POP3Command * cmd = &pop3->queue[0];
 	int cnt;
 	char * p;
@@ -1075,8 +1106,8 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(pop3->ssl, cnt), buf);
-			pop3->helper->error(NULL, buf, 1);
-			pop3->wr_source = g_idle_add(_on_reset, pop3);
+			pop3->source = g_idle_add(_on_reset, pop3);
+			helper->error(helper->account, buf, 1);
 		}
 		return FALSE;
 	}

@@ -44,8 +44,12 @@ int account_set_name(Account * account, char const * name);
 /* useful */
 int account_config_load(Account * account, Config * config);
 int account_config_save(Account * account, Config * config);
+
 int account_init(Account * account);
 int account_quit(Account * account);
+
+int account_start(Account * account);
+void account_stop(Account * account);
 
 GtkTextBuffer * account_select(Account * account, Folder * folder,
 		Message * message);

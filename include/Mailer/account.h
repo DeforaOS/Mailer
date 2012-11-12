@@ -129,6 +129,8 @@ typedef const struct _AccountPluginDefinition
 	AccountConfig * (*get_config)(AccountPlugin * plugin);
 	char * (*get_source)(AccountPlugin * plugin, AccountFolder * folder,
 			AccountMessage * message);
+	int (*start)(AccountPlugin * plugin);
+	void (*stop)(AccountPlugin * plugin);
 	int (*refresh)(AccountPlugin * plugin, AccountFolder * folder,
 			AccountMessage * message);
 } AccountPluginDefinition;

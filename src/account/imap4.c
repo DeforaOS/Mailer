@@ -188,6 +188,8 @@ AccountConfig const _imap4_config[I4CV_COUNT + 1] =
 static IMAP4 * _imap4_init(AccountPluginHelper * helper);
 static int _imap4_destroy(IMAP4 * imap4);
 static AccountConfig * _imap4_get_config(IMAP4 * imap4);
+static int _imap4_start(IMAP4 * imap4);
+static void _imap4_stop(IMAP4 * imap4);
 static int _imap4_refresh(IMAP4 * imap4, AccountFolder * folder,
 		AccountMessage * message);
 
@@ -197,7 +199,6 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
 		struct sockaddr_in * sa);
 static int _imap4_parse(IMAP4 * imap4);
-static void _imap4_reset(IMAP4 * imap4);
 
 /* events */
 static void _imap4_event_status(IMAP4 * imap4, AccountStatus status,
@@ -250,11 +251,15 @@ AccountPluginDefinition account_plugin =
 	_imap4_destroy,
 	_imap4_get_config,
 	NULL,
+	_imap4_start,
+	_imap4_stop,
 	_imap4_refresh
 };
 
 
-/* private */
+/* protected */
+/* functions */
+/* plug-in */
 /* imap4_init */
 static IMAP4 * _imap4_init(AccountPluginHelper * helper)
 {
@@ -284,7 +289,7 @@ static int _imap4_destroy(IMAP4 * imap4)
 #endif
 	if(imap4 == NULL) /* XXX _imap4_destroy() may be called uninitialized */
 		return 0;
-	_imap4_reset(imap4);
+	_imap4_stop(imap4);
 #if 0 /* XXX do not free() */
 	_imap4_folder_delete(imap4, &imap4->folders);
 #endif
@@ -297,6 +302,52 @@ static int _imap4_destroy(IMAP4 * imap4)
 static AccountConfig * _imap4_get_config(IMAP4 * imap4)
 {
 	return imap4->config;
+}
+
+
+/* imap4_start */
+static int _imap4_start(IMAP4 * imap4)
+{
+	if(imap4->fd >= 0)
+		/* already started */
+		return 0;
+	imap4->source = g_idle_add(_on_connect, imap4);
+	return 0;
+}
+
+
+/* imap4_stop */
+static void _imap4_stop(IMAP4 * imap4)
+{
+	size_t i;
+
+	if(imap4->ssl != NULL)
+		SSL_free(imap4->ssl);
+	imap4->ssl = NULL;
+	if(imap4->rd_source != 0)
+		g_source_remove(imap4->rd_source);
+	imap4->rd_source = 0;
+	if(imap4->wr_source != 0)
+		g_source_remove(imap4->wr_source);
+	imap4->wr_source = 0;
+	if(imap4->source != 0)
+		g_source_remove(imap4->source);
+	imap4->source = 0;
+	if(imap4->channel != NULL)
+	{
+		g_io_channel_shutdown(imap4->channel, TRUE, NULL);
+		g_io_channel_unref(imap4->channel);
+		imap4->fd = -1;
+	}
+	imap4->channel = NULL;
+	for(i = 0; i < imap4->queue_cnt; i++)
+		free(imap4->queue[i].buf);
+	free(imap4->queue);
+	imap4->queue = NULL;
+	imap4->queue_cnt = 0;
+	if(imap4->fd >= 0)
+		close(imap4->fd);
+	imap4->fd = -1;
 }
 
 
@@ -326,6 +377,8 @@ static int _imap4_refresh(IMAP4 * imap4, AccountFolder * folder,
 }
 
 
+/* private */
+/* functions */
 /* useful */
 /* imap4_command */
 static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
@@ -335,7 +388,8 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 	size_t len;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, command);
+	fprintf(stderr, "DEBUG: %s(\"%s\", %p)\n", __func__, command,
+			(void *)imap4->channel);
 #endif
 	/* abort if the command is invalid */
 	if(command == NULL || (len = strlen(command) + 6) == 0)
@@ -763,41 +817,6 @@ static int _context_status(IMAP4 * imap4, char const * answer)
 }
 
 
-/* imap4_reset */
-static void _imap4_reset(IMAP4 * imap4)
-{
-	size_t i;
-
-	if(imap4->ssl != NULL)
-		SSL_free(imap4->ssl);
-	imap4->ssl = NULL;
-	if(imap4->rd_source != 0)
-		g_source_remove(imap4->rd_source);
-	imap4->rd_source = 0;
-	if(imap4->wr_source != 0)
-		g_source_remove(imap4->wr_source);
-	imap4->wr_source = 0;
-	if(imap4->source != 0)
-		g_source_remove(imap4->source);
-	imap4->source = 0;
-	if(imap4->channel != NULL)
-	{
-		g_io_channel_shutdown(imap4->channel, TRUE, NULL);
-		g_io_channel_unref(imap4->channel);
-		imap4->fd = -1;
-	}
-	imap4->channel = NULL;
-	for(i = 0; i < imap4->queue_cnt; i++)
-		free(imap4->queue[i].buf);
-	free(imap4->queue);
-	imap4->queue = NULL;
-	imap4->queue_cnt = 0;
-	if(imap4->fd >= 0)
-		close(imap4->fd);
-	imap4->fd = -1;
-}
-
-
 /* imap4_event_status */
 static void _imap4_event_status(IMAP4 * imap4, AccountStatus status,
 		char const * message)
@@ -994,8 +1013,9 @@ static gboolean _on_connect(gpointer data)
 	/* create the socket */
 	if((imap4->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
+		imap4->source = g_idle_add(_on_reset, imap4);
 		helper->error(helper->account, strerror(errno), 1);
-		return _on_reset(imap4);
+		return FALSE;
 	}
 	if((res = fcntl(imap4->fd, F_GETFL)) >= 0
 			&& fcntl(imap4->fd, F_SETFL, res | O_NONBLOCK) == -1)
@@ -1067,7 +1087,7 @@ static gboolean _on_reset(gpointer data)
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
-	_imap4_reset(imap4);
+	_imap4_stop(imap4);
 	imap4->source = g_timeout_add(3000, _on_connect, imap4);
 	return FALSE;
 }
@@ -1122,11 +1142,10 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		}
 		if(SSL_set_fd(imap4->ssl, imap4->fd) != 1)
 		{
-			/* FIXME save the error to a buffer, free SSL, report */
-			helper->error(helper->account, ERR_error_string(
-						ERR_get_error(), buf), 1);
+			ERR_error_string(ERR_get_error(), buf);
 			SSL_free(imap4->ssl);
 			imap4->ssl = NULL;
+			helper->error(helper->account, buf, 1);
 			return FALSE;
 		}
 		SSL_set_connect_state(imap4->ssl);
@@ -1175,7 +1194,7 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 	ERR_error_string(err, buf);
 	if(res == 0)
 	{
-		imap4->rd_source = g_idle_add(_on_reset, imap4);
+		imap4->source = g_idle_add(_on_reset, imap4);
 		helper->error(helper->account, buf, 1);
 		return FALSE;
 	}
@@ -1187,7 +1206,7 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 				_on_watch_can_handshake, imap4);
 	else
 	{
-		imap4->rd_source = g_idle_add(_on_reset, imap4);
+		imap4->source = g_idle_add(_on_reset, imap4);
 		helper->error(helper->account, buf, 1);
 		return FALSE;
 	}
@@ -1246,17 +1265,17 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			imap4->rd_source = g_idle_add(_on_reset, imap4);
+			imap4->source = g_idle_add(_on_reset, imap4);
 			helper->error(helper->account, error->message, 1);
 			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
-			imap4->rd_source = g_idle_add(_on_reset, imap4);
+			imap4->source = g_idle_add(_on_reset, imap4);
 			return FALSE;
 	}
 	if(_imap4_parse(imap4) != 0)
 	{
-		imap4->rd_source = g_idle_add(_on_reset, imap4);
+		imap4->source = g_idle_add(_on_reset, imap4);
 		return FALSE;
 	}
 	if(imap4->queue_cnt == 0)
@@ -1322,7 +1341,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
-			imap4->rd_source = g_idle_add(_on_reset, imap4);
+			imap4->source = g_idle_add(_on_reset, imap4);
 			imap4->helper->error(imap4->helper->account, buf, 1);
 		}
 		return FALSE;
@@ -1334,7 +1353,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	imap4->rd_buf_cnt += cnt;
 	if(_imap4_parse(imap4) != 0)
 	{
-		imap4->rd_source = g_idle_add(_on_reset, imap4);
+		imap4->source = g_idle_add(_on_reset, imap4);
 		return FALSE;
 	}
 	if(imap4->queue_cnt == 0)
@@ -1404,12 +1423,12 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			imap4->wr_source = g_idle_add(_on_reset, imap4);
+			imap4->source = g_idle_add(_on_reset, imap4);
 			helper->error(helper->account, error->message, 1);
 			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
-			imap4->wr_source = g_idle_add(_on_reset, imap4);
+			imap4->source = g_idle_add(_on_reset, imap4);
 			return FALSE;
 	}
 	if(cmd->buf_cnt > 0)
@@ -1454,7 +1473,7 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
-			imap4->wr_source = g_idle_add(_on_reset, imap4);
+			imap4->source = g_idle_add(_on_reset, imap4);
 			helper->error(helper->account, buf, 1);
 		}
 		return FALSE;
