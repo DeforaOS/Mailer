@@ -73,20 +73,12 @@ typedef enum _AccountStatus
 /* AccountEvent */
 typedef enum _AccountEventType
 {
-	AET_ERROR = 0,
-	AET_STATUS
+	AET_STATUS = 0
 } AccountEventType;
 
 typedef union _AccountEvent
 {
 	AccountEventType type;
-
-	/* AET_ERROR */
-	struct
-	{
-		AccountEventType type;
-		char const * message;
-	} error;
 
 	/* AET_STATUS */
 	struct

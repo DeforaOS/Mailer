@@ -449,9 +449,6 @@ static void _account_helper_event(Account * account, AccountEvent * event)
 
 	switch(event->type)
 	{
-		case AET_ERROR:
-			mailer_error(mailer, event->error.message, 1);
-			break;
 		case AET_STATUS:
 			_helper_event_status(account, event);
 			break;
