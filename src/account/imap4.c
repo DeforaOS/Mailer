@@ -441,6 +441,7 @@ static int _imap4_parse(IMAP4 * imap4)
 				j += 6;
 				cmd->status = I4CS_PARSING;
 				if(strncmp("BAD ", &imap4->rd_buf[j], 4) == 0)
+					/* FIXME report and pop queue instead */
 					helper->error(helper->account,
 							&imap4->rd_buf[j + 4],
 							1);
@@ -999,6 +1000,7 @@ static gboolean _on_connect(gpointer data)
 	if((res = fcntl(imap4->fd, F_GETFL)) >= 0
 			&& fcntl(imap4->fd, F_SETFL, res | O_NONBLOCK) == -1)
 		/* ignore this error */
+		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
 	snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
@@ -1011,8 +1013,9 @@ static gboolean _on_connect(gpointer data)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(errno));
+		imap4->source = g_idle_add(_on_reset, imap4);
 		helper->error(helper->account, buf, 1);
-		return _on_reset(imap4);
+		return FALSE;
 	}
 	imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
 			_on_watch_can_connect, imap4);
@@ -1119,6 +1122,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		}
 		if(SSL_set_fd(imap4->ssl, imap4->fd) != 1)
 		{
+			/* FIXME save the error to a buffer, free SSL, report */
 			helper->error(helper->account, ERR_error_string(
 						ERR_get_error(), buf), 1);
 			SSL_free(imap4->ssl);
@@ -1171,8 +1175,9 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 	ERR_error_string(err, buf);
 	if(res == 0)
 	{
+		imap4->rd_source = g_idle_add(_on_reset, imap4);
 		helper->error(helper->account, buf, 1);
-		return _on_reset(imap4);
+		return FALSE;
 	}
 	if(err == SSL_ERROR_WANT_WRITE)
 		imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
@@ -1182,8 +1187,9 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 				_on_watch_can_handshake, imap4);
 	else
 	{
+		imap4->rd_source = g_idle_add(_on_reset, imap4);
 		helper->error(helper->account, buf, 1);
-		return _on_reset(imap4);
+		return FALSE;
 	}
 	return FALSE;
 }
@@ -1240,7 +1246,9 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
+			imap4->rd_source = g_idle_add(_on_reset, imap4);
 			helper->error(helper->account, error->message, 1);
+			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
 			imap4->rd_source = g_idle_add(_on_reset, imap4);
@@ -1314,8 +1322,8 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
-			imap4->helper->error(imap4->helper->account, buf, 1);
 			imap4->rd_source = g_idle_add(_on_reset, imap4);
+			imap4->helper->error(imap4->helper->account, buf, 1);
 		}
 		return FALSE;
 	}
@@ -1396,7 +1404,9 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
+			imap4->wr_source = g_idle_add(_on_reset, imap4);
 			helper->error(helper->account, error->message, 1);
+			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
 			imap4->wr_source = g_idle_add(_on_reset, imap4);
@@ -1444,8 +1454,8 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
-			helper->error(helper->account, buf, 1);
 			imap4->wr_source = g_idle_add(_on_reset, imap4);
+			helper->error(helper->account, buf, 1);
 		}
 		return FALSE;
 	}
