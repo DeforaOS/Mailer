@@ -442,7 +442,7 @@ static int _imap4_parse(IMAP4 * imap4)
 				cmd->status = I4CS_PARSING;
 				if(strncmp("BAD ", &imap4->rd_buf[j], 4) == 0)
 					/* FIXME report and pop queue instead */
-					helper->error(helper->account,
+					helper->error(NULL,
 							&imap4->rd_buf[j + 4],
 							1);
 			}
