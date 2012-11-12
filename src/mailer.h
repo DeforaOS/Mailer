@@ -43,6 +43,8 @@ void mailer_set_status(Mailer * mailer, char const * status);
 /* useful */
 int mailer_error(Mailer * mailer, char const * message, int ret);
 
+void mailer_refresh_all(Mailer * mailer);
+
 /* accounts */
 int mailer_account_add(Mailer * mailer, Account * account);
 #if 0 /* FIXME deprecate? */

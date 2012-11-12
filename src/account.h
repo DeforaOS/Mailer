@@ -48,6 +48,7 @@ int account_config_save(Account * account, Config * config);
 int account_init(Account * account);
 int account_quit(Account * account);
 
+void account_refresh(Account * account);
 int account_start(Account * account);
 void account_stop(Account * account);
 

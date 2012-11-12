@@ -368,6 +368,13 @@ int account_quit(Account * account)
 }
 
 
+/* account_refresh */
+void account_refresh(Account * account)
+{
+	/* FIXME really implement */
+}
+
+
 /* account_select */
 GtkTextBuffer * account_select(Account * account, Folder * folder,
 		Message * message)

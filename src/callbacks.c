@@ -84,6 +84,15 @@ void on_file_new_mail(gpointer data)
 }
 
 
+/* on_file_send_receive */
+void on_file_send_receive(gpointer data)
+{
+	Mailer * mailer = data;
+
+	mailer_refresh_all(mailer);
+}
+
+
 void on_file_quit(gpointer data)
 {
 	on_closex(data);

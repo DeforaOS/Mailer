@@ -26,6 +26,7 @@ gboolean on_closex(gpointer data);
 
 /* file menu */
 void on_file_new_mail(gpointer data);
+void on_file_send_receive(gpointer data);
 void on_file_quit(gpointer data);
 
 /* edit menu */

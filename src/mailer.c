@@ -158,8 +158,8 @@ static const DesktopMenu _menu_file[] =
 	{ N_("_New mail"), G_CALLBACK(on_file_new_mail), "stock_mail-compose",
 		GDK_CONTROL_MASK, GDK_KEY_N },
 	{ "", NULL, NULL, 0, 0 },
-	{ N_("Send / Receive"), NULL, "stock_mail-send-receive",
-		GDK_CONTROL_MASK, GDK_KEY_R },
+	{ N_("Send / Receive"), G_CALLBACK(on_file_send_receive),
+		"stock_mail-send-receive", GDK_CONTROL_MASK, GDK_KEY_R },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Print"), NULL, GTK_STOCK_PRINT, GDK_CONTROL_MASK, GDK_KEY_P },
 	{ N_("Print pre_view"), NULL, GTK_STOCK_PRINT_PREVIEW, GDK_CONTROL_MASK,
@@ -1055,6 +1055,16 @@ int mailer_error(Mailer * mailer, char const * message, int ret)
 	gtk_widget_show(dialog);
 #endif
 	return ret;
+}
+
+
+/* mailer_refresh_all */
+void mailer_refresh_all(Mailer * mailer)
+{
+	size_t i;
+
+	for(i = 0; i < mailer->account_cnt; i++)
+		account_refresh(mailer->account[i]);
 }
 
 
