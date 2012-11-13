@@ -487,6 +487,10 @@ static void _account_helper_event(Account * account, AccountEvent * event)
 
 	switch(event->type)
 	{
+		case AET_STARTED:
+		case AET_STOPPED:
+			/* FIXME forward this information */
+			break;
 		case AET_STATUS:
 			_helper_event_status(account, event);
 			break;

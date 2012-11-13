@@ -73,7 +73,9 @@ typedef enum _AccountStatus
 /* AccountEvent */
 typedef enum _AccountEventType
 {
-	AET_STATUS = 0
+	AET_STARTED = 0,
+	AET_STOPPED,
+	AET_STATUS
 } AccountEventType;
 
 typedef union _AccountEvent
