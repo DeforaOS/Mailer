@@ -165,6 +165,7 @@ static int _pop3_lookup(POP3 * pop3, char const * hostname, uint16_t port,
 static int _pop3_parse(POP3 * pop3);
 
 /* events */
+static void _pop3_event(POP3 * pop3, AccountEventType type);
 static void _pop3_event_status(POP3 * pop3, AccountStatus status,
 		char const * message);
 
@@ -178,7 +179,6 @@ static void _pop3_message_delete(POP3 * pop3,
 /* callbacks */
 static gboolean _on_connect(gpointer data);
 static gboolean _on_noop(gpointer data);
-static gboolean _on_reset(gpointer data);
 static gboolean _on_watch_can_connect(GIOChannel * source,
 		GIOCondition condition, gpointer data);
 static gboolean _on_watch_can_handshake(GIOChannel * source,
@@ -265,7 +265,8 @@ static AccountConfig * _pop3_get_config(POP3 * pop3)
 /* pop3_start */
 static int _pop3_start(POP3 * pop3)
 {
-	if(pop3->fd >= 0)
+	_pop3_event(pop3, AET_STARTED);
+	if(pop3->fd >= 0 || pop3->source != 0)
 		/* already started */
 		return 0;
 	pop3->source = g_idle_add(_on_connect, pop3);
@@ -299,6 +300,7 @@ static void _pop3_stop(POP3 * pop3)
 	free(pop3->queue);
 	if(pop3->fd >= 0)
 		close(pop3->fd);
+	_pop3_event(pop3, AET_STOPPED);
 }
 
 
@@ -306,9 +308,13 @@ static void _pop3_stop(POP3 * pop3)
 static int _pop3_refresh(POP3 * pop3, AccountFolder * folder,
 		AccountMessage * message)
 {
-	char buf[32];
 	POP3Command * cmd;
+	char buf[32];
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %u\n", __func__, (message != NULL)
+			? message->id : 0);
+#endif
 	if(message == NULL)
 		return 0;
 	snprintf(buf, sizeof(buf), "%s %u", "RETR", message->id);
@@ -403,12 +409,15 @@ static int _pop3_parse(POP3 * pop3)
 #endif
 	for(i = 0, j = 0;; j = ++i)
 	{
+		/* look for carriage return sequences */
 		for(; i < pop3->rd_buf_cnt; i++)
 			if(pop3->rd_buf[i] == '\r' && i + 1 < pop3->rd_buf_cnt
 					&& pop3->rd_buf[++i] == '\n')
 				break;
+		/* if no carriage return was found wait for more input */
 		if(i == pop3->rd_buf_cnt)
 			break;
+		/* if no command was sent read more lines */
 		if(pop3->queue_cnt == 0)
 			continue;
 		pop3->rd_buf[i - 1] = '\0';
@@ -554,6 +563,26 @@ static int _parse_context_transaction_retr(POP3 * pop3,
 }
 
 
+/* pop3_event */
+static void _pop3_event(POP3 * pop3, AccountEventType type)
+{
+	AccountPluginHelper * helper = pop3->helper;
+	AccountEvent event;
+
+	memset(&event, 0, sizeof(event));
+	switch((event.status.type = type))
+	{
+		case AET_STARTED:
+		case AET_STOPPED:
+			break;
+		default:
+			/* XXX not handled */
+			return;
+	}
+	helper->event(helper->account, &event);
+}
+
+
 /* pop3_event_status */
 static void _pop3_event_status(POP3 * pop3, AccountStatus status,
 		char const * message)
@@ -575,6 +604,9 @@ static AccountMessage * _pop3_message_get(POP3 * pop3,
 {
 	size_t i;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(\"%s\", %u)\n", __func__, folder->name, id);
+#endif
 	for(i = 0; i < folder->messages_cnt; i++)
 		if(folder->messages[i]->id == id)
 			return folder->messages[i];
@@ -655,8 +687,8 @@ static gboolean _on_connect(gpointer data)
 	/* create the socket */
 	if((pop3->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		pop3->source = g_idle_add(_on_reset, pop3);
 		helper->error(helper->account, strerror(errno), 1);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	if((res = fcntl(pop3->fd, F_GETFL)) >= 0
@@ -675,8 +707,8 @@ static gboolean _on_connect(gpointer data)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(errno));
-		pop3->source = g_idle_add(_on_reset, pop3);
 		helper->error(helper->account, buf, 1);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
@@ -719,20 +751,6 @@ static gboolean _on_noop(gpointer data)
 }
 
 
-/* on_reset */
-static gboolean _on_reset(gpointer data)
-{
-	POP3 * pop3 = data;
-
-#ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s()\n", __func__);
-#endif
-	_pop3_stop(pop3);
-	pop3->source = g_timeout_add(3000, _on_connect, pop3);
-	return FALSE;
-}
-
-
 /* on_watch_can_connect */
 static gboolean _on_watch_can_connect(GIOChannel * source,
 		GIOCondition condition, gpointer data)
@@ -758,6 +776,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(res));
 		helper->error(helper->account, buf, 1);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	/* XXX remember the address instead */
@@ -824,7 +843,10 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 	if((res = SSL_do_handshake(pop3->ssl)) == 1)
 	{
 		if(_handshake_verify(pop3) != 0)
-			return _on_reset(pop3);
+		{
+			_pop3_stop(pop3);
+			return FALSE;
+		}
 		/* wait for the server's banner */
 		pop3->rd_source = g_io_add_watch(pop3->channel, G_IO_IN,
 				_on_watch_can_read_ssl, pop3);
@@ -834,8 +856,8 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 	ERR_error_string(err, buf);
 	if(res == 0)
 	{
-		pop3->source = g_idle_add(_on_reset, pop3);
 		helper->error(helper->account, buf, 1);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	if(err == SSL_ERROR_WANT_WRITE)
@@ -846,8 +868,8 @@ static gboolean _on_watch_can_handshake(GIOChannel * source,
 				_on_watch_can_handshake, pop3);
 	else
 	{
-		pop3->source = g_idle_add(_on_reset, pop3);
 		helper->error(helper->account, buf, 1);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	return FALSE;
@@ -883,14 +905,18 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 	GError * error = NULL;
 	GIOStatus status;
 	POP3Command * cmd;
+	const int inc = 256;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	if(condition != G_IO_IN || source != pop3->channel)
 		return FALSE; /* should not happen */
-	if((p = realloc(pop3->rd_buf, pop3->rd_buf_cnt + 256)) == NULL)
+	if((p = realloc(pop3->rd_buf, pop3->rd_buf_cnt + inc)) == NULL)
 		return TRUE; /* XXX retries immediately (delay?) */
 	pop3->rd_buf = p;
 	status = g_io_channel_read_chars(source,
-			&pop3->rd_buf[pop3->rd_buf_cnt], 256, &cnt, &error);
+			&pop3->rd_buf[pop3->rd_buf_cnt], inc, &cnt, &error);
 #ifdef DEBUG
 	fprintf(stderr, "%s", "DEBUG: POP3 SERVER: ");
 	fwrite(&pop3->rd_buf[pop3->rd_buf_cnt], sizeof(*p), cnt, stderr);
@@ -901,24 +927,23 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			pop3->source = g_idle_add(_on_reset, pop3);
 			helper->error(helper->account, error->message, 1);
+			g_error_free(error);
+			_pop3_stop(pop3);
 			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
-			pop3->source = g_idle_add(_on_reset, pop3);
+			_pop3_event_status(pop3, AS_DISCONNECTED, NULL);
+			_pop3_stop(pop3);
 			return FALSE;
 	}
 	if(_pop3_parse(pop3) != 0)
 	{
-		pop3->source = g_idle_add(_on_reset, pop3);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	if(pop3->queue_cnt == 0)
-	{
-		pop3->rd_source = 0;
-		return FALSE;
-	}
+		return TRUE;
 	cmd = &pop3->queue[0];
 	if(cmd->buf_cnt == 0)
 	{
@@ -930,7 +955,6 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 			memmove(cmd, &pop3->queue[1], sizeof(*cmd)
 					* --pop3->queue_cnt);
 	}
-	pop3->rd_source = 0;
 	if(pop3->queue_cnt == 0)
 	{
 		_pop3_event_status(pop3, AS_IDLE, NULL);
@@ -939,7 +963,7 @@ static gboolean _on_watch_can_read(GIOChannel * source, GIOCondition condition,
 	else
 		pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
 				_on_watch_can_write, pop3);
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -974,9 +998,10 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 					_on_watch_can_read_ssl, pop3);
 		else
 		{
+			pop3->rd_source = 0;
 			ERR_error_string(SSL_get_error(pop3->ssl, cnt), buf);
-			pop3->source = g_idle_add(_on_reset, pop3);
-			pop3->helper->error(pop3->helper->account, buf, 1);
+			_pop3_event_status(pop3, AS_DISCONNECTED, buf);
+			_pop3_stop(pop3);
 		}
 		return FALSE;
 	}
@@ -987,14 +1012,11 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	pop3->rd_buf_cnt += cnt;
 	if(_pop3_parse(pop3) != 0)
 	{
-		pop3->source = g_idle_add(_on_reset, pop3);
+		_pop3_stop(pop3);
 		return FALSE;
 	}
 	if(pop3->queue_cnt == 0)
-	{
-		pop3->rd_source = 0;
-		return FALSE;
-	}
+		return TRUE;
 	cmd = &pop3->queue[0];
 	if(cmd->buf_cnt == 0)
 	{
@@ -1006,7 +1028,6 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 			memmove(cmd, &pop3->queue[1], sizeof(*cmd)
 					* --pop3->queue_cnt);
 	}
-	pop3->rd_source = 0;
 	if(pop3->queue_cnt == 0)
 	{
 		_pop3_event_status(pop3, AS_IDLE, NULL);
@@ -1015,7 +1036,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	else
 		pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
 				_on_watch_can_write_ssl, pop3);
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -1057,12 +1078,14 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 		case G_IO_STATUS_NORMAL:
 			break;
 		case G_IO_STATUS_ERROR:
-			pop3->source = g_idle_add(_on_reset, pop3);
 			helper->error(helper->account, error->message, 1);
+			g_error_free(error);
+			_pop3_stop(pop3);
 			return FALSE;
 		case G_IO_STATUS_EOF:
 		default:
-			pop3->source = g_idle_add(_on_reset, pop3);
+			_pop3_event_status(pop3, AS_DISCONNECTED, NULL);
+			_pop3_stop(pop3);
 			return FALSE;
 	}
 	if(cmd->buf_cnt > 0)
@@ -1070,6 +1093,7 @@ static gboolean _on_watch_can_write(GIOChannel * source, GIOCondition condition,
 	cmd->status = P3CS_SENT;
 	pop3->wr_source = 0;
 	if(pop3->rd_source == 0)
+		/* XXX should not happen */
 		pop3->rd_source = g_io_add_watch(pop3->channel, G_IO_IN,
 				_on_watch_can_read, pop3);
 	return FALSE;
@@ -1081,7 +1105,6 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		GIOCondition condition, gpointer data)
 {
 	POP3 * pop3 = data;
-	AccountPluginHelper * helper = pop3->helper;
 	POP3Command * cmd = &pop3->queue[0];
 	int cnt;
 	char * p;
@@ -1106,8 +1129,8 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 		else
 		{
 			ERR_error_string(SSL_get_error(pop3->ssl, cnt), buf);
-			pop3->source = g_idle_add(_on_reset, pop3);
-			helper->error(helper->account, buf, 1);
+			_pop3_event_status(pop3, AS_DISCONNECTED, buf);
+			_pop3_stop(pop3);
 		}
 		return FALSE;
 	}
@@ -1126,6 +1149,7 @@ static gboolean _on_watch_can_write_ssl(GIOChannel * source,
 	cmd->status = P3CS_SENT;
 	pop3->wr_source = 0;
 	if(pop3->rd_source == 0)
+		/* XXX should not happen */
 		pop3->rd_source = g_io_add_watch(pop3->channel, G_IO_IN,
 				_on_watch_can_read_ssl, pop3);
 	return FALSE;
