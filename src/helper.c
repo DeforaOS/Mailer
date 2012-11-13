@@ -76,7 +76,8 @@ char * mailer_helper_get_email(char const * header)
 			|| sscanf(header, "<%[^>]>", ret) == 1
 			|| sscanf(header, "%[^<]<%[^>]>", buf, ret) == 2)
 	{
-		for(len = strlen(ret); len > 0 && isblank(ret[len - 1]); len--)
+		for(len = strlen(ret); len > 0
+				&& isblank((unsigned char)ret[len - 1]); len--)
 			ret[len - 1] = '\0';
 		if(mailer_helper_is_email(ret))
 		{
@@ -123,8 +124,8 @@ char * mailer_helper_get_name(char const * header)
 	}
 	free(buf);
 	/* right-trim spaces */
-	for(len = strlen(ret); --len > 0 && isspace((c = ret[len]));
-			ret[len] = '\0');
+	for(len = strlen(ret); --len > 0
+			&& isspace((unsigned char)ret[len]); ret[len] = '\0');
 	/* remove surrounding quotes */
 	if((len = strlen(ret)) >= 2 && ((c = ret[0]) == '"' || c == '\'')
 			&& ret[len - 1] == c)
@@ -143,12 +144,12 @@ int mailer_helper_is_email(char const * header)
 	int c;
 
 	/* FIXME this is neither strict nor standard at the moment */
-	for(i = 0; (c = header[i]) != '@'; i++)
+	for(i = 0; (c = (unsigned char)header[i]) != '@'; i++)
 		if(c == '\0')
 			return 0;
 		else if(!isalnum(c) && c != '.' && c != '_')
 			return 0;
-	for(i++; (c = header[i]) != '\0'; i++)
+	for(i++; (c = (unsigned char)header[i]) != '\0'; i++)
 		if(!isalnum(c) && c != '.' && c != '_')
 			return 0;
 	return 1;
