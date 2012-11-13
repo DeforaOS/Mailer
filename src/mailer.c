@@ -240,7 +240,8 @@ static DesktopToolbar _mailer_fo_toolbar[] =
 	{ N_("New mail"), G_CALLBACK(on_file_new_mail), "stock_mail-compose", 0,
 		0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Send / Receive"), NULL, "stock_mail-send-receive", 0, 0, NULL },
+	{ N_("Send / Receive"), G_CALLBACK(on_file_send_receive),
+		"stock_mail-send-receive", 0, 0, NULL },
 	{ N_("Stop"), NULL, GTK_STOCK_STOP, 0, GDK_KEY_Escape, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 #ifndef EMBEDDED
