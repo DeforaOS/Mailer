@@ -371,7 +371,8 @@ int account_quit(Account * account)
 /* account_refresh */
 void account_refresh(Account * account)
 {
-	/* FIXME really implement */
+	account_stop(account);
+	account_start(account);
 }
 
 
