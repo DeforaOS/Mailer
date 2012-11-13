@@ -684,9 +684,10 @@ static int _context_list(IMAP4 * imap4, char const * answer)
 		sscanf(p, "%63s", buf);
 	buf[63] = '\0';
 	if(buf[0] != '\0' && (folder = _imap4_folder_get_folder(imap4, parent,
-					buf)) != NULL)
+					buf)) != NULL
+			/* FIXME escape the mailbox' name instead */
+			&& strchr(buf, '"') == NULL)
 	{
-		/* FIXME escape the mailbox name (double quotes...) */
 		q = g_strdup_printf("%s \"%s\" (%s)", "STATUS", buf,
 				"MESSAGES RECENT UNSEEN");
 		if((cmd = _imap4_command(imap4, I4C_STATUS, q)) != NULL)
