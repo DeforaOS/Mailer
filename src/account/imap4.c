@@ -828,9 +828,10 @@ static int _context_status(IMAP4 * imap4, char const * answer)
 			}
 			else
 				/* skip until the next space */
-				for(; *p != '\0' && *p != ' '; p++);
+				for(; *p != '\0' && *p != ' ' && *p != ')';
+						p++);
 			/* skip until the next space */
-			for(; *p != '\0' && *p != ' '; p++);
+			for(; *p != '\0' && *p != ' ' && *p != ')'; p++);
 		}
 	return 0;
 }
