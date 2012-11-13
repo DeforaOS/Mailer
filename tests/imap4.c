@@ -19,7 +19,28 @@
 #include "../src/account/imap4.c"
 
 
-/* imap4 */
+/* imap4_list */
+static int _imap4_list(char const * progname, char const * title,
+		IMAP4 * imap4, char const * list)
+{
+	int ret;
+	IMAP4Command cmd;
+	AccountFolder folder;
+
+	printf("%s: Testing %s\n", progname, title);
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.data.list.parent = &folder;
+	memset(&folder, 0, sizeof(folder));
+	imap4->queue = &cmd;
+	imap4->queue_cnt = 1;
+	ret = _context_list(imap4, list);
+	imap4->queue = NULL;
+	imap4->queue_cnt = 0;
+	return ret;
+}
+
+
+/* imap4_status */
 static int _imap4_status(char const * progname, char const * title,
 		IMAP4 * imap4, char const * status)
 {
@@ -28,15 +49,32 @@ static int _imap4_status(char const * progname, char const * title,
 }
 
 
+/* helpers */
+static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
+		Folder * parent, FolderType type, char const * Name)
+{
+	static AccountFolder af;
+
+	memset(&af, 0, sizeof(af));
+	return &af;
+}
+
+
 /* main */
 int main(int argc, char * argv[])
 {
 	int ret = 0;
+	AccountPluginHelper helper;
 	IMAP4 imap4;
-	char const status[] = "STATUS \"folder\""
+	char const list[] = "LIST (\\Noselect \\No \\Yes) \"/\" ~/Mail/foo";
+	char const status[] = "STATUS \"~/Mail/foo\""
 		" (MESSAGES 3 RECENT 2 UNSEEN 1)";
 
+	memset(&helper, 0, sizeof(helper));
+	helper.folder_new = _helper_folder_new;
 	memset(&imap4, 0, sizeof(imap4));
+	imap4.helper = &helper;
+	ret |= _imap4_list(argv[0], "LIST (1/1)", &imap4, list);
 	ret |= _imap4_status(argv[0], "STATUS (1/4)", &imap4, status);
 	ret |= _imap4_status(argv[0], "STATUS (2/4)", &imap4, "()");
 	ret |= _imap4_status(argv[0], "STATUS (3/4)", &imap4, "( )");

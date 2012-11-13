@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -636,14 +637,16 @@ static int _context_list(IMAP4 * imap4, char const * answer)
 	IMAP4Command * cmd = &imap4->queue[0];
 	AccountFolder * folder;
 	AccountFolder * parent = cmd->data.list.parent;
-	char const * p;
+	char const * p = answer;
 	gchar * q;
 	char const haschildren[] = "\\HasChildren";
 	int recurse = 0;
 	char reference = '\0';
 	char buf[64];
 
-	p = answer;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, answer);
+#endif
 	if(strncmp("OK", p, 2) == 0)
 	{
 		cmd->status = I4CS_OK;
@@ -654,16 +657,26 @@ static int _context_list(IMAP4 * imap4, char const * answer)
 	p += 5;
 	if(*p == '(') /* parse flags */
 	{
-		for(p++; *p != '\0' && *p != ')'; p++)
-			if(*p != '\\')
-				continue;
-			else if(strncmp(p, haschildren, sizeof(haschildren) - 1)
-					== 0) /* FIXME  */
+		for(p++; *p == '\\'; p++)
+		{
+#ifdef DEBUG
+			fprintf(stderr, "DEBUG: %s() flag \"%s\"\n", __func__,
+					p);
+#endif
+			if(strncmp(p, haschildren, sizeof(haschildren) - 1)
+					== 0)
 			{
 				p += sizeof(haschildren) - 2;
 				recurse = 1;
 			}
-			/* FIXME else skip until end of flag */
+			else
+				/* skip until end of flag */
+				for(p++; isalnum((unsigned char)*p); p++);
+			if(*p == ')')
+				break;
+		}
+		if(*p != ')')
+			return -1;
 		p++;
 	}
 	if(*p == ' ') /* skip spaces */
