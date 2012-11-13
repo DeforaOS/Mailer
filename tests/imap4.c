@@ -15,6 +15,8 @@
 
 
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "../src/account/imap4.c"
 
@@ -24,18 +26,23 @@ static int _imap4_list(char const * progname, char const * title,
 		IMAP4 * imap4, char const * list)
 {
 	int ret;
-	IMAP4Command cmd;
+	IMAP4Command * cmd;
 	AccountFolder folder;
 
 	printf("%s: Testing %s\n", progname, title);
-	memset(&cmd, 0, sizeof(cmd));
-	cmd.data.list.parent = &folder;
+	if((cmd = malloc(sizeof(*cmd))) == NULL)
+		return -1;
+	memset(cmd, 0, sizeof(*cmd));
+	cmd->data.list.parent = &folder;
 	memset(&folder, 0, sizeof(folder));
-	imap4->queue = &cmd;
+	imap4->channel = -1; /* XXX */
+	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
 	ret = _context_list(imap4, list);
+	free(imap4->queue);
 	imap4->queue = NULL;
 	imap4->queue_cnt = 0;
+	imap4->channel = NULL;
 	return ret;
 }
 
