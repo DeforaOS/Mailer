@@ -787,30 +787,48 @@ static int _context_status(IMAP4 * imap4, char const * answer)
 	if(*p == ' ') /* skip spaces */
 		for(p++; *p != '\0' && *p == ' '; p++);
 	if(*p == '(')
+		/* parse the data items */
 		for(p++; *p != '\0' && *p != ')'; p++)
 		{
 			if(strncmp(p, messages, sizeof(messages) - 1) == 0
 					&& p[sizeof(messages) - 1] == ' ')
 			{
+				/* number of messages in the mailbox */
 				p += sizeof(messages);
 				sscanf(p, "%u", &u);
 				/* FIXME really implement */
+#ifdef DEBUG
+				fprintf(stderr, "DEBUG: %s() %u messages\n",
+						__func__, u);
+#endif
 			}
-			if(strncmp(p, recent, sizeof(recent) - 1) == 0
+			else if(strncmp(p, recent, sizeof(recent) - 1) == 0
 					&& p[sizeof(recent) - 1] == ' ')
 			{
+				/* number of recent messages in the mailbox */
 				p += sizeof(recent);
 				sscanf(p, "%u", &u);
 				/* FIXME really implement */
+#ifdef DEBUG
+				fprintf(stderr, "DEBUG: %s() %u recent\n",
+						__func__, u);
+#endif
 			}
-			if(strncmp(p, unseen, sizeof(unseen) - 1) == 0
+			else if(strncmp(p, unseen, sizeof(unseen) - 1) == 0
 					&& p[sizeof(unseen) - 1] == ' ')
 			{
+				/* number of unseen messages in the mailbox */
 				p += sizeof(unseen);
 				sscanf(p, "%u", &u);
 				/* FIXME really implement */
+#ifdef DEBUG
+				fprintf(stderr, "DEBUG: %s() %u unseen\n",
+						__func__, u);
+#endif
 			}
-			/* FIXME implement more */
+			else
+				/* skip until the next space */
+				for(; *p != '\0' && *p != ' '; p++);
 			/* skip until the next space */
 			for(; *p != '\0' && *p != ' '; p++);
 		}
