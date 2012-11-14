@@ -21,7 +21,7 @@
 
 
 /* date */
-static int _date(char const * progname, char const * date, char const * str)
+static int _date(char const * progname, char const * expected, char const * str)
 {
 	struct tm tm;
 	char buf[32];
@@ -29,10 +29,12 @@ static int _date(char const * progname, char const * date, char const * str)
 	printf("%s: Testing \"%s\"\n", progname, str);
 	mailer_helper_get_date(str, &tm);
 	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &tm);
-	if(strcmp(buf, date) != 0)
+	if(expected == NULL)
+		return 0;
+	if(strcmp(buf, expected) != 0)
 	{
 		fprintf(stderr, "%s: %s: %s\n", progname, buf,
-				"Does not match the date");
+				"Does not match the expected date");
 		return 1;
 	}
 	return 0;
@@ -47,5 +49,7 @@ int main(int argc, char * argv[])
 
 	ret += _date(argv[0], expected, expected);
 	ret += _date(argv[0], expected, "10 Nov 2011 10:11:12 -0000");
-	return ret;
+	ret += _date(argv[0], NULL, "");
+	ret += _date(argv[0], NULL, NULL);
+	return (ret == 0) ? 0 : ret + 1;
 }

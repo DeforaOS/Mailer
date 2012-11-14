@@ -27,20 +27,26 @@
 /* mailer_helper_get_date */
 time_t mailer_helper_get_date(char const * date, struct tm * tm)
 {
+	char const * p;
 	time_t t;
 
 	if(date != NULL)
 	{
 		/* FIXME check the standard(s) again */
-		if(strptime(date, "%a, %d %b %Y %T %z", tm) != NULL)
+		if((p = strptime(date, "%a, %d %b %Y %T %z", tm)) != NULL
+				&& *p == '\0')
 			return mktime(tm);
-		if(strptime(date, "%d %b %Y %T %z", tm) != NULL)
+		if((p = strptime(date, "%d %b %Y %T %z", tm)) != NULL
+				&& *p == '\0')
 			return mktime(tm);
-		if(strptime(date, "%d/%m/%Y %T %z", tm) != NULL)
+		if((p = strptime(date, "%d/%m/%Y %T %z", tm)) != NULL
+				&& *p == '\0')
 			return mktime(tm);
-		if(strptime(date, "%d/%m/%Y %T", tm) != NULL)
+		if((p = strptime(date, "%d/%m/%Y %T", tm)) != NULL
+				&& *p == '\0')
 			return mktime(tm);
-		if(strptime(date, "%FT%TZ", tm) != NULL)
+		if((p = strptime(date, "%FT%TZ", tm)) != NULL
+				&& *p == '\0')
 			return mktime(tm);
 	}
 	/* XXX fallback to the current time and date */
