@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "Mailer.h"
+#include "../src/helper.c"
 
 
 /* date */
@@ -49,6 +49,10 @@ int main(int argc, char * argv[])
 
 	ret += _date(argv[0], expected, expected);
 	ret += _date(argv[0], expected, "10 Nov 2011 10:11:12 -0000");
+	ret += _date(argv[0], expected,
+			"Thu, 10 Nov 2011 10:11:12 -0000 (CET)");
+	ret += _date(argv[0], expected,
+			"Thu, 10 Nov 2011 10:11:12 +0000");
 	ret += _date(argv[0], NULL, "");
 	ret += _date(argv[0], NULL, NULL);
 	return (ret == 0) ? 0 : ret + 1;

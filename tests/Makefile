@@ -19,7 +19,7 @@ all: $(TARGETS)
 
 date_OBJS = date.o
 date_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
-date_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) -L ../src -Wl,-rpath,../src -lMailer
+date_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
 date: $(date_OBJS)
 	$(CC) -o date $(date_OBJS) $(date_LDFLAGS)
@@ -41,7 +41,7 @@ imap4: $(imap4_OBJS)
 tests.log: date email imap4
 	./tests.sh -P "$(PREFIX)" -- "tests.log"
 
-date.o: date.c ../src/libMailer.a
+date.o: date.c ../src/helper.c
 	$(CC) $(date_CFLAGS) -c date.c
 
 email.o: email.c ../src/libMailer.a

@@ -33,7 +33,8 @@ time_t mailer_helper_get_date(char const * date, struct tm * tm)
 
 	if(date != NULL)
 		/* FIXME check the standard(s) again */
-		if(_date_do(date, "%a, %d %b %Y %T %z", tm) == 0
+		if(_date_do(date, "%a, %d %b %Y %T %z (%z)", tm) == 0
+				|| _date_do(date, "%a, %d %b %Y %T %z", tm) == 0
 				|| _date_do(date, "%d %b %Y %T %z", tm) == 0
 				|| _date_do(date, "%d/%m/%Y %T %z", tm) == 0
 				|| _date_do(date, "%d/%m/%Y %T", tm) == 0
@@ -51,6 +52,10 @@ static int _date_do(char const * date, char const * format, struct tm * tm)
 
 	memset(tm, 0, sizeof(*tm));
 	if((p = strptime(date, format, tm)) != NULL && *p == '\0')
+		return 0;
+	/* check if we obtained enough information */
+	if(p != NULL && tm->tm_year != 0 && tm->tm_mday != 0)
+		/* XXX _apparently_ yes */
 		return 0;
 	return -1;
 }
