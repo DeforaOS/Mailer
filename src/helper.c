@@ -25,34 +25,34 @@
 /* public */
 /* functions */
 /* mailer_helper_get_date */
+static int _date_do(char const * date, char const * format, struct tm * tm);
+
 time_t mailer_helper_get_date(char const * date, struct tm * tm)
 {
-	char const * p;
 	time_t t;
 
 	if(date != NULL)
-	{
 		/* FIXME check the standard(s) again */
-		if((p = strptime(date, "%a, %d %b %Y %T %z", tm)) != NULL
-				&& *p == '\0')
+		if(_date_do(date, "%a, %d %b %Y %T %z", tm) == 0
+				|| _date_do(date, "%d %b %Y %T %z", tm) == 0
+				|| _date_do(date, "%d/%m/%Y %T %z", tm) == 0
+				|| _date_do(date, "%d/%m/%Y %T", tm) == 0
+				|| _date_do(date, "%FT%TZ", tm) == 0)
 			return mktime(tm);
-		if((p = strptime(date, "%d %b %Y %T %z", tm)) != NULL
-				&& *p == '\0')
-			return mktime(tm);
-		if((p = strptime(date, "%d/%m/%Y %T %z", tm)) != NULL
-				&& *p == '\0')
-			return mktime(tm);
-		if((p = strptime(date, "%d/%m/%Y %T", tm)) != NULL
-				&& *p == '\0')
-			return mktime(tm);
-		if((p = strptime(date, "%FT%TZ", tm)) != NULL
-				&& *p == '\0')
-			return mktime(tm);
-	}
 	/* XXX fallback to the current time and date */
 	t = time(NULL);
 	gmtime_r(&t, tm);
 	return t;
+}
+
+static int _date_do(char const * date, char const * format, struct tm * tm)
+{
+	char const * p;
+
+	memset(tm, 0, sizeof(*tm));
+	if((p = strptime(date, format, tm)) != NULL && *p == '\0')
+		return 0;
+	return -1;
 }
 
 
