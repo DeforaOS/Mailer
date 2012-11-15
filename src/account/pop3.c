@@ -605,7 +605,7 @@ static AccountMessage * _pop3_message_get(POP3 * pop3,
 	size_t i;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(\"%s\", %u)\n", __func__, folder->name, id);
+	fprintf(stderr, "DEBUG: %s(%p, %u)\n", __func__, (void *)folder, id);
 #endif
 	for(i = 0; i < folder->messages_cnt; i++)
 		if(folder->messages[i]->id == id)
