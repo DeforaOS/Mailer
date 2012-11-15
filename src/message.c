@@ -132,7 +132,7 @@ Message * message_new_open(Mailer * mailer, char const * filename)
 	Config * config;
 	Account * account;
 
-	if((message = message_new(mailer, NULL, NULL)) == NULL)
+	if((message = message_new(NULL, NULL, NULL)) == NULL)
 		return NULL;
 	if((config = config_new()) == NULL
 			|| config_set(config, "title", "mbox", filename) != 0)
@@ -143,9 +143,11 @@ Message * message_new_open(Mailer * mailer, char const * filename)
 		return NULL;
 	}
 	if((account = account_new(mailer, "mbox", "title", NULL)) == NULL
-			|| account_init(account) == 0
-			|| account_config_load(mailer, config) != 0)
+			|| account_init(account) != 0
+			|| account_config_load(account, config) != 0)
 	{
+		if(account != NULL)
+			account_delete(account);
 		config_delete(config);
 		message_delete(message);
 		return NULL;
