@@ -350,8 +350,10 @@ int account_init(Account * account)
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, account->title);
 #endif
-	return (account->account = account->definition->init(&account->helper))
-		!= NULL ? 0 : -1;
+	if(account->account != NULL)
+		return 0;
+	account->account = account->definition->init(&account->helper);
+	return (account->account != NULL) ? 0 : -1;
 }
 
 
