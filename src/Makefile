@@ -56,10 +56,10 @@ mailer: $(mailer_OBJS) libMailer.a
 account.o: account.c mailer.h message.h account.h ../config.h
 	$(CC) -D PREFIX=\"$(PREFIX)\" $(libMailer_CFLAGS) -c account.c
 
-callbacks.o: callbacks.c account.h callbacks.h compose.h mailer.h gtkassistant.c ../config.h
+callbacks.o: callbacks.c account.h callbacks.h compose.h mailer.h message.h gtkassistant.c ../config.h
 	$(CC) $(libMailer_CFLAGS) -c callbacks.c
 
-compose.o: compose.c callbacks.h common.c mailer.h compose.h ../config.h
+compose.o: compose.c callbacks.h common.c mailer.h message.h compose.h ../config.h
 	$(CC) $(libMailer_CFLAGS) -c compose.c
 
 folder.o: folder.c mailer.h folder.h
@@ -68,13 +68,13 @@ folder.o: folder.c mailer.h folder.h
 helper.o: helper.c ../include/Mailer/helper.h
 	$(CC) $(libMailer_CFLAGS) -c helper.c
 
-mailer.o: mailer.c account.h callbacks.h common.c compose.h mailer.h ../config.h
+mailer.o: mailer.c account.h callbacks.h common.c compose.h message.h mailer.h ../config.h
 	$(CC) -D PREFIX=\"$(PREFIX)\" $(libMailer_CFLAGS) -c mailer.c
 
 message.o: message.c
 	$(CC) $(libMailer_CFLAGS) -c message.c
 
-compose-main.o: compose-main.c compose.h
+compose-main.o: compose-main.c compose.h message.h
 	$(CC) $(compose_CFLAGS) -c compose-main.c
 
 main.o: main.c mailer.h ../config.h

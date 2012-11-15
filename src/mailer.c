@@ -157,6 +157,8 @@ static const DesktopMenu _menu_file[] =
 {
 	{ N_("_New mail"), G_CALLBACK(on_file_new_mail), "stock_mail-compose",
 		GDK_CONTROL_MASK, GDK_KEY_N },
+	{ N_("_Open..."), G_CALLBACK(on_file_open), GTK_STOCK_OPEN,
+		GDK_CONTROL_MASK, GDK_KEY_O },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("Send / Receive"), G_CALLBACK(on_file_send_receive),
 		"stock_mail-send-receive", GDK_CONTROL_MASK, GDK_KEY_R },
@@ -237,8 +239,12 @@ static const DesktopMenubar _mailer_menubar[] =
 
 static DesktopToolbar _mailer_fo_toolbar[] =
 {
-	{ N_("New mail"), G_CALLBACK(on_file_new_mail), "stock_mail-compose", 0,
+	{ N_("New message"), G_CALLBACK(on_new_mail), "stock_mail-compose", 0,
 		0, NULL },
+#ifdef EMBEDDED
+	{ N_("Open message"), G_CALLBACK(on_open), GTK_STOCK_OPEN,
+		GDK_CONTROL_MASK, GDK_KEY_O, NULL },
+#endif
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Send / Receive"), G_CALLBACK(on_file_send_receive),
 		"stock_mail-send-receive", 0, 0, NULL },
@@ -1542,6 +1548,49 @@ void mailer_select_all(Mailer * mailer)
 #endif
 	treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(mailer->he_view));
 	gtk_tree_selection_select_all(treesel);
+}
+
+
+/* messages */
+gboolean mailer_message_open(Mailer * mailer, char const * filename)
+{
+	Message * message;
+	Compose * compose;
+
+	if(filename == NULL)
+		return mailer_message_open_dialog(mailer);
+	if((message = message_new_open(mailer, filename)) == NULL)
+	{
+		mailer_error(mailer, error_get(), 1);
+		return FALSE;
+	}
+	compose = compose_new_open(mailer->config, message);
+	message_delete(message);
+	return (compose != NULL) ? TRUE : FALSE;
+}
+
+
+/* mailer_message_open_dialog */
+gboolean mailer_message_open_dialog(Mailer * mailer)
+{
+	gboolean ret;
+	GtkWidget * dialog;
+	char * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new(_("Open..."),
+			GTK_WINDOW(mailer->he_window),
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	gtk_widget_destroy(dialog);
+	if(filename == NULL)
+		return FALSE;
+	ret = mailer_message_open(mailer, filename);
+	g_free(filename);
+	return ret;
 }
 
 

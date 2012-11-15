@@ -173,12 +173,7 @@ void account_delete(Account * account)
 {
 	if(account->row != NULL)
 		gtk_tree_row_reference_free(account->row);
-	if(account->definition != NULL)
-	{
-		if(account->definition->destroy != NULL
-				&& account->account != NULL)
-			account->definition->destroy(account->account);
-	}
+	account_quit(account);
 	string_delete(account->title);
 	string_delete(account->type);
 	if(account->plugin != NULL)
@@ -363,8 +358,8 @@ int account_init(Account * account)
 /* account_quit */
 int account_quit(Account * account)
 {
-	/* FIXME untested */
-	account->definition->destroy(account->account);
+	if(account->definition != NULL && account->account != NULL)
+		account->definition->destroy(account->account);
 	account->account = NULL;
 	return 0;
 }

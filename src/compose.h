@@ -21,6 +21,7 @@
 # include <sys/types.h>
 # include <glib.h>
 # include <System.h>
+# include "message.h"
 
 
 /* types */
@@ -29,6 +30,7 @@ typedef struct _Compose Compose;
 /* methods */
 Compose * compose_new(Config * config);
 Compose * compose_new_copy(Compose * compose);
+Compose * compose_new_open(Config * config, Message * message);
 void compose_delete(Compose * compose);
 
 /* accessors */

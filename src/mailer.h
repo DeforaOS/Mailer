@@ -79,6 +79,10 @@ void mailer_cut(Mailer * mailer);
 void mailer_copy(Mailer * mailer);
 void mailer_paste(Mailer * mailer);
 
+/* messages */
+gboolean mailer_message_open(Mailer * mailer, char const * filename);
+gboolean mailer_message_open_dialog(Mailer * mailer);
+
 /* interface */
 void mailer_show_about(Mailer * mailer, gboolean show);
 void mailer_show_body(Mailer * mailer, gboolean show);

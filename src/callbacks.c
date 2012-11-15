@@ -78,9 +78,17 @@ gboolean on_plugins_closex(gpointer data)
 
 
 /* file menu */
+/* on_file_new_mail */
 void on_file_new_mail(gpointer data)
 {
 	on_new_mail(data);
+}
+
+
+/* on_file_open */
+void on_file_open(gpointer data)
+{
+	on_open(data);
 }
 
 
@@ -93,6 +101,7 @@ void on_file_send_receive(gpointer data)
 }
 
 
+/* on_file_quit */
 void on_file_quit(gpointer data)
 {
 	on_closex(data);
@@ -213,6 +222,7 @@ void on_help_about(gpointer data)
 
 
 /* toolbar */
+/* on_delete */
 void on_delete(gpointer data)
 {
 	Mailer * mailer = data;
@@ -221,6 +231,7 @@ void on_delete(gpointer data)
 }
 
 
+/* on_forward */
 void on_forward(gpointer data)
 {
 	/* FIXME return directly if there is no selection */
@@ -229,6 +240,7 @@ void on_forward(gpointer data)
 }
 
 
+/* on_new_mail */
 void on_new_mail(gpointer data)
 {
 	Mailer * mailer = data;
@@ -237,6 +249,16 @@ void on_new_mail(gpointer data)
 }
 
 
+/* on_open */
+void on_open(gpointer data)
+{
+	Mailer * mailer = data;
+
+	mailer_message_open_dialog(mailer);
+}
+
+
+/* on_preferences */
 void on_preferences(gpointer data)
 {
 	Mailer * mailer = data;
@@ -245,12 +267,14 @@ void on_preferences(gpointer data)
 }
 
 
+/* on_quit */
 void on_quit(gpointer data)
 {
 	on_closex(data);
 }
 
 
+/* on_reply */
 void on_reply(gpointer data)
 {
 	Mailer * mailer = data;
@@ -259,6 +283,7 @@ void on_reply(gpointer data)
 }
 
 
+/* on_reply_to_all */
 void on_reply_to_all(gpointer data)
 {
 	Mailer * mailer = data;
@@ -267,6 +292,7 @@ void on_reply_to_all(gpointer data)
 }
 
 
+/* on_view_source */
 void on_view_source(gpointer data)
 {
 	Mailer * mailer = data;

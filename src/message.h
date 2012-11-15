@@ -29,6 +29,7 @@
 /* functions */
 Message * message_new(AccountMessage * message, GtkListStore * store,
 		GtkTreeIter * iter);
+Message * message_new_open(Mailer * mailer, char const * filename);
 void message_delete(Message * message);
 
 /* accessors */

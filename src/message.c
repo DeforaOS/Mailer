@@ -101,10 +101,16 @@ Message * message_new(AccountMessage * message, GtkListStore * store,
 #endif
 	if((ret = object_new(sizeof(*ret))) == NULL)
 		return NULL;
-	ret->store = store;
-	path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), iter);
-	ret->row = gtk_tree_row_reference_new(GTK_TREE_MODEL(store), path);
-	gtk_tree_path_free(path);
+	if((ret->store = store) != NULL)
+	{
+		path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), iter);
+		ret->row = gtk_tree_row_reference_new(GTK_TREE_MODEL(store),
+				path);
+		gtk_tree_path_free(path);
+		gtk_list_store_set(store, iter, MHC_MESSAGE, ret, -1);
+	}
+	else
+		ret->row = NULL;
 	ret->headers = NULL;
 	ret->headers_cnt = 0;
 	ret->body = NULL;
@@ -113,17 +119,49 @@ Message * message_new(AccountMessage * message, GtkListStore * store,
 	ret->attachments = NULL;
 	ret->attachments_cnt = 0;
 	ret->data = message;
-	gtk_list_store_set(store, iter, MHC_MESSAGE, ret, -1);
 	_message_set_date(ret, NULL);
 	_message_set_status(ret, NULL);
 	return ret;
 }
 
 
+/* message_new_open */
+Message * message_new_open(Mailer * mailer, char const * filename)
+{
+	Message * message;
+	Config * config;
+	Account * account;
+
+	if((message = message_new(mailer, NULL, NULL)) == NULL)
+		return NULL;
+	if((config = config_new()) == NULL
+			|| config_set(config, "title", "mbox", filename) != 0)
+	{
+		if(config != NULL)
+			config_delete(config);
+		message_delete(message);
+		return NULL;
+	}
+	if((account = account_new(mailer, "mbox", "title", NULL)) == NULL
+			|| account_init(account) == 0
+			|| account_config_load(mailer, config) != 0)
+	{
+		config_delete(config);
+		message_delete(message);
+		return NULL;
+	}
+	/* FIXME really implement */
+	config_delete(config);
+	account_delete(account);
+	return message;
+}
+
+
 /* message_delete */
 void message_delete(Message * message)
 {
-	gtk_tree_row_reference_free(message->row);
+	if(message->row != NULL)
+		gtk_tree_row_reference_free(message->row);
 	g_object_unref(message->text);
 	free(message->body);
 	free(message->headers);
@@ -163,6 +201,8 @@ gboolean message_get_iter(Message * message, GtkTreeIter * iter)
 {
 	GtkTreePath * path;
 
+	if(message->row == NULL)
+		return FALSE;
 	if((path = gtk_tree_row_reference_get_path(message->row)) == NULL)
 		return FALSE;
 	return gtk_tree_model_get_iter(GTK_TREE_MODEL(message->store), iter,

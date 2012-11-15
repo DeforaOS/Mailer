@@ -488,6 +488,18 @@ Compose * compose_new_copy(Compose * compose)
 }
 
 
+/* compose_new_open */
+Compose * compose_new_open(Config * config, Message * message)
+{
+	Compose * compose;
+
+	if((compose = compose_new(config)) == NULL)
+		return NULL;
+	/* FIXME really implement */
+	return compose;
+}
+
+
 /* compose_delete */
 void compose_delete(Compose * compose)
 {
