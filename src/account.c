@@ -115,7 +115,7 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 	GdkPixbuf * pixbuf;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: account_new(%p, \"%s\", \"%s\", %p)\n",
+	fprintf(stderr, "DEBUG: %s(%p, \"%s\", \"%s\", %p)\n", __func__,
 			(void *)mailer, type, title, (void *)store);
 #endif
 	if(type == NULL)
@@ -260,7 +260,8 @@ int account_config_load(Account * account, Config * config)
 	long l;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void *)config);
+	fprintf(stderr, "DEBUG: %s(\"%s\", %p)\n", __func__, account->title,
+			(void *)config);
 #endif
 	if(p == NULL || account->title == NULL)
 		return 0;
@@ -305,7 +306,8 @@ int account_config_save(Account * account, Config * config)
 	char buf[6];
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: account_config_save(%p)\n", (void *)config);
+	fprintf(stderr, "DEBUG: %s(\"%s\", %p)\n", __func__, account->title,
+			(void *)config);
 #endif
 	if(account->title == NULL)
 		return 0;
@@ -351,7 +353,7 @@ int account_config_save(Account * account, Config * config)
 int account_init(Account * account)
 {
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void *)account);
+	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, account->title);
 #endif
 	return (account->account = account->definition->init(&account->helper))
 		!= NULL ? 0 : -1;
@@ -429,7 +431,7 @@ GtkTextBuffer * account_select_source(Account * account, Folder * folder,
 int account_start(Account * account)
 {
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%p)\n", __func__, (void *)account);
+	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, account->title);
 #endif
 	if(account->definition->start == NULL)
 		return 0;
@@ -474,7 +476,20 @@ static int _account_helper_error(Account * account, char const * message,
 		int ret)
 {
 	Mailer * mailer = (account != NULL) ? account->mailer : NULL;
+	size_t len;
+	char * p;
 
+	if(account != NULL)
+	{
+		len = strlen(account->title) + strlen(message) + 3;
+		if((p = malloc(len)) != NULL)
+		{
+			snprintf(p, len, "%s: %s", account->title, message);
+			mailer_set_status(mailer, p);
+			free(p);
+			return ret;
+		}
+	}
 	return mailer_error(mailer, message, ret);
 }
 
@@ -484,8 +499,6 @@ static void _helper_event_status(Account * account, AccountEvent * event);
 
 static void _account_helper_event(Account * account, AccountEvent * event)
 {
-	Mailer * mailer = account->mailer;
-
 	switch(event->type)
 	{
 		case AET_STARTED:
@@ -590,8 +603,8 @@ static Folder * _account_helper_folder_new(Account * account,
 	gint i;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%p, %p, %p, %u, \"%s\")\n", __func__,
-			(void *)account, (void *)folder, (void *)parent, type,
+	fprintf(stderr, "DEBUG: %s(\"%s\", %p, %p, %u, \"%s\")\n", __func__,
+			account->title, (void *)folder, (void *)parent, type,
 			name);
 #endif
 	/* lookup the account */
