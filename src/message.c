@@ -144,7 +144,8 @@ Message * message_new_open(Mailer * mailer, char const * filename)
 	}
 	if((account = account_new(mailer, "mbox", "title", NULL)) == NULL
 			|| account_init(account) != 0
-			|| account_config_load(account, config) != 0)
+			|| account_config_load(account, config) != 0
+			|| account_start(account) != 0)
 	{
 		if(account != NULL)
 			account_delete(account);
@@ -152,7 +153,10 @@ Message * message_new_open(Mailer * mailer, char const * filename)
 		message_delete(message);
 		return NULL;
 	}
-	/* FIXME really implement */
+	/* FIXME really implement; possibly:
+	 * - set different helpers for account;
+	 * - delete the account once the message loaded;
+	 * - implement and use the Transport class instead. */
 	config_delete(config);
 	account_delete(account);
 	return message;
