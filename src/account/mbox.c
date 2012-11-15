@@ -130,6 +130,8 @@ static int _mbox_destroy(Mbox * mbox);
 static AccountConfig * _mbox_get_config(Mbox * mbox);
 static char * _mbox_get_source(Mbox * mbox, AccountFolder * folder,
 		AccountMessage * message);
+static int _mbox_start(Mbox * mbox);
+static void _mbox_stop(Mbox * mbox);
 static int _mbox_refresh(Mbox * mbox, AccountFolder * folder,
 		AccountMessage * message);
 
@@ -144,8 +146,8 @@ AccountPluginDefinition account_plugin =
 	_mbox_destroy,
 	_mbox_get_config,
 	_mbox_get_source,
-	NULL,
-	NULL,
+	_mbox_start,
+	_mbox_stop,
 	_mbox_refresh
 };
 
@@ -175,8 +177,6 @@ static int _message_set_header(AccountMessage * message, char const * header);
 static Mbox * _mbox_init(AccountPluginHelper * helper)
 {
 	Mbox * mbox;
-	size_t i;
-	AccountFolder * af;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -191,18 +191,6 @@ static Mbox * _mbox_init(AccountPluginHelper * helper)
 		return NULL;
 	}
 	memcpy(mbox->config, &_mbox_config, sizeof(_mbox_config));
-	for(i = 0; i < _FOLDER_CNT; i++)
-	{
-		af = &mbox->folders[i];
-		af->config = &_mbox_config[_mbox_folder_defaults[i].config];
-		if(af->config->value == NULL)
-			continue;
-		af->folder = helper->folder_new(helper->account, af, NULL,
-				_mbox_folder_defaults[i].type,
-				_mbox_folder_defaults[i].name);
-		af->mbox = mbox;
-		af->source = g_idle_add(_folder_idle, af);
-	}
 	return mbox;
 }
 
@@ -219,6 +207,7 @@ static int _mbox_destroy(Mbox * mbox)
 #endif
 	if(mbox == NULL) /* XXX _mbox_destroy() may be called uninitialized */
 		return 0;
+	_mbox_stop(mbox);
 	for(i = 0; i < _FOLDER_CNT; i++)
 	{
 		mf = &mbox->folders[i];
@@ -270,6 +259,55 @@ static char * _mbox_get_source(Mbox * mbox, AccountFolder * folder,
 		ret = NULL;
 	}
 	return ret;
+}
+
+
+/* mbox_start */
+static int _mbox_start(Mbox * mbox)
+{
+	AccountPluginHelper * helper = mbox->helper;
+	size_t i;
+	AccountFolder * af;
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	_mbox_stop(mbox);
+	for(i = 0; i < _FOLDER_CNT; i++)
+	{
+		af = &mbox->folders[i];
+		af->config = &mbox->config[_mbox_folder_defaults[i].config];
+#ifdef DEBUG
+		fprintf(stderr, "DEBUG: %s() \"%s\"\n", __func__,
+				(char *)af->config->value);
+#endif
+		if(af->config->value == NULL)
+			continue;
+		af->folder = helper->folder_new(helper->account, af, NULL,
+				_mbox_folder_defaults[i].type,
+				_mbox_folder_defaults[i].name);
+		af->mbox = mbox;
+		af->source = g_idle_add(_folder_idle, af);
+	}
+	return 0;
+}
+
+
+/* mbox_stop */
+static void _mbox_stop(Mbox * mbox)
+{
+	size_t i;
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	/* FIXME really implement */
+	for(i = 0; i < _FOLDER_CNT; i++)
+	{
+		if(mbox->folders[i].source != 0)
+			g_source_remove(mbox->folders[i].source);
+		mbox->folders[i].source = 0;
+	}
 }
 
 
