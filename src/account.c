@@ -453,7 +453,8 @@ static gboolean _account_get_iter(Account * account, GtkTreeIter * iter)
 {
 	GtkTreePath * path;
 
-	if((path = gtk_tree_row_reference_get_path(account->row)) == NULL)
+	if(account->row == FALSE || (path = gtk_tree_row_reference_get_path(
+					account->row)) == NULL)
 		return FALSE;
 	return gtk_tree_model_get_iter(GTK_TREE_MODEL(account->store), iter,
 			path);
@@ -604,6 +605,8 @@ static Folder * _account_helper_folder_new(Account * account,
 			account->title, (void *)folder, (void *)parent, type,
 			name);
 #endif
+	if(account->row == NULL)
+		return NULL;
 	/* lookup the account */
 	if(_account_get_iter(account, &aiter) == TRUE)
 		paiter = &aiter;
@@ -660,6 +663,8 @@ static Message * _account_helper_message_new(Account * account, Folder * folder,
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
+	if(folder == NULL)
+		return message_new(message, NULL, NULL);
 	store = folder_get_messages(folder);
 	gtk_list_store_append(store, &iter);
 	if((ret = message_new(message, store, &iter)) == NULL)
