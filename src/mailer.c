@@ -112,6 +112,7 @@ struct _Mailer
 	GtkWidget * bo_view;
 	GtkWidget * statusbar;
 	gint statusbar_id;
+	GtkWidget * st_online;
 	/* plug-ins */
 	GtkWidget * pl_window;
 	GtkWidget * pl_view;
@@ -317,7 +318,8 @@ static void _mailer_update_status(Mailer * mailer);
 static void _mailer_update_view(Mailer * mailer);
 
 /* callbacks */
-static void _mailer_on_plugin_combo_change(gpointer data);
+static void _mailer_on_online_toggled(gpointer data);
+static void _mailer_on_plugin_combo_changed(gpointer data);
 
 
 /* public */
@@ -343,6 +345,7 @@ Mailer * mailer_new(void)
 	GtkAccelGroup * group;
 	GtkWidget * vbox;
 	GtkWidget * vbox2;
+	GtkWidget * hbox;
 #ifndef EMBEDDED
 	GtkWidget * hpaned;
 	GtkWidget * hpaned2;
@@ -449,9 +452,16 @@ Mailer * mailer_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
 #endif
 	/* statusbar */
+	hbox = gtk_hbox_new(FALSE, 4);
+	mailer->st_online = gtk_toggle_button_new();
+	g_signal_connect_swapped(mailer->st_online, "toggled", G_CALLBACK(
+				_mailer_on_online_toggled), mailer);
+	/* FIXME set icon and callback */
+	gtk_box_pack_start(GTK_BOX(hbox), mailer->st_online, FALSE, TRUE, 0);
 	mailer->statusbar = gtk_statusbar_new();
 	mailer->statusbar_id = 0;
-	gtk_box_pack_start(GTK_BOX(vbox), mailer->statusbar, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), mailer->statusbar, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(mailer->fo_window), vbox);
 	gtk_widget_show_all(vbox);
 	/* messages list */
@@ -545,7 +555,7 @@ Mailer * mailer_new(void)
 	mailer->pl_combo = gtk_combo_box_new_with_model(GTK_TREE_MODEL(
 				mailer->pl_store));
 	g_signal_connect_swapped(G_OBJECT(mailer->pl_combo), "changed",
-			G_CALLBACK(_mailer_on_plugin_combo_change), mailer);
+			G_CALLBACK(_mailer_on_plugin_combo_changed), mailer);
 	renderer = gtk_cell_renderer_pixbuf_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(mailer->pl_combo), renderer,
 			FALSE);
@@ -903,6 +913,13 @@ static void _idle_config_load(Mailer * mailer)
 	font = pango_font_description_from_string(value);
 	gtk_widget_modify_font(mailer->bo_view, font);
 	pango_font_description_free(font);
+	/* check if we are online */
+	if((p = config_get(mailer->config, NULL, "online")) == NULL
+			|| strtol(p, NULL, 10) != 0)
+		mailer_set_online(mailer, TRUE);
+	else
+		mailer_set_online(mailer, FALSE);
+	/* load accounts */
 	if((value = config_get(mailer->config, NULL, "accounts")) == NULL
 			|| value[0] == '\0')
 		return;
@@ -1011,6 +1028,33 @@ SSL_CTX * mailer_get_ssl_context(Mailer * mailer)
 }
 
 
+/* mailer_is_online */
+gboolean mailer_is_online(Mailer * mailer)
+{
+	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+				mailer->st_online));
+}
+
+
+/* mailer_set_online */
+void mailer_set_online(Mailer * mailer, gboolean online)
+{
+	GtkWidget * image;
+	size_t i;
+
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mailer->st_online),
+			online);
+	image = gtk_image_new_from_stock(online ? GTK_STOCK_CONNECT
+			: GTK_STOCK_DISCONNECT, GTK_ICON_SIZE_BUTTON);
+	gtk_button_set_image(GTK_BUTTON(mailer->st_online), image);
+	for(i = 0; i < mailer->account_cnt; i++)
+		if(online)
+			account_start(mailer->account[i]);
+		else
+			account_stop(mailer->account[i]);
+}
+
+
 /* mailer_set_status */
 void mailer_set_status(Mailer * mailer, char const * status)
 {
@@ -1090,7 +1134,8 @@ int mailer_account_add(Mailer * mailer, Account * account)
 	mailer->account[mailer->account_cnt] = account;
 	mailer->account_cnt++;
 	/* XXX check (and report) errors */
-	account_start(account);
+	if(mailer_is_online(mailer))
+		account_start(account);
 	return 0;
 }
 
@@ -3293,8 +3338,20 @@ static void _mailer_update_view(Mailer * mailer)
 
 
 /* callbacks */
-/* mailer_on_plugin_combo_change */
-static void _mailer_on_plugin_combo_change(gpointer data)
+/* mailer_on_online_toggled */
+static void _mailer_on_online_toggled(gpointer data)
+{
+	Mailer * mailer = data;
+	gboolean online;
+
+	online = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+				mailer->st_online));
+	mailer_set_online(mailer, online);
+}
+
+
+/* mailer_on_plugin_combo_changed */
+static void _mailer_on_plugin_combo_changed(gpointer data)
 {
 	Mailer * mailer = data;
 	GtkTreeModel * model = GTK_TREE_MODEL(mailer->pl_store);

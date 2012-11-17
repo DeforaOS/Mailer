@@ -38,6 +38,10 @@ void mailer_delete(Mailer * mailer);
 /* accessors */
 char const * mailer_get_config(Mailer * mailer, char const * variable);
 SSL_CTX * mailer_get_ssl_context(Mailer * mailer);
+
+gboolean mailer_is_online(Mailer * mailer);
+
+void mailer_set_online(Mailer * mailer, gboolean online);
 void mailer_set_status(Mailer * mailer, char const * status);
 
 /* useful */
