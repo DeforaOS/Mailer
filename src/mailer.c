@@ -1045,7 +1045,7 @@ void mailer_set_online(Mailer * mailer, gboolean online)
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mailer->st_online),
 			online);
 	image = gtk_image_new_from_stock(online ? GTK_STOCK_CONNECT
-			: GTK_STOCK_DISCONNECT, GTK_ICON_SIZE_BUTTON);
+			: GTK_STOCK_DISCONNECT, GTK_ICON_SIZE_MENU);
 	gtk_button_set_image(GTK_BUTTON(mailer->st_online), image);
 	for(i = 0; i < mailer->account_cnt; i++)
 		if(online)
