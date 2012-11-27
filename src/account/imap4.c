@@ -394,13 +394,12 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 			(void *)imap4->channel);
 #endif
 	/* abort if the command is invalid */
-	if(command == NULL || (len = strlen(command) + 6) == 0)
+	if(command == NULL || (len = strlen(command) + 9) == 0)
 		return NULL;
 	/* abort if there is no active connection */
 	if(imap4->channel == NULL)
 		return NULL;
 	/* queue the command */
-	len += 2;
 	if((p = realloc(imap4->queue, sizeof(*p) * (imap4->queue_cnt + 1)))
 			== NULL)
 		return NULL;
@@ -409,9 +408,9 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 	p->id = imap4->queue_id++;
 	p->context = context;
 	p->status = I4CS_QUEUED;
-	if((p->buf = malloc(len + 1)) == NULL)
+	if((p->buf = malloc(len)) == NULL)
 		return NULL;
-	p->buf_cnt = snprintf(p->buf, len + 1, "a%04x %s\r\n", p->id, command);
+	p->buf_cnt = snprintf(p->buf, len, "a%04x %s\r\n", p->id, command);
 	memset(&p->data, 0, sizeof(p->data));
 	if(imap4->queue_cnt++ == 0)
 	{
