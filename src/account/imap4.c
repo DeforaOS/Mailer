@@ -1357,7 +1357,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 	int cnt;
 	IMAP4Command * cmd;
 	char buf[128];
-	const int inc = 1024; /* FIXME does not work with smaller values */
+	const int inc = 16384; /* XXX not reliable with a smaller value */
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -1372,15 +1372,18 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 			<= 0)
 	{
 		if(SSL_get_error(imap4->ssl, cnt) == SSL_ERROR_WANT_WRITE)
+			/* call SSL_read() again when it can send data */
 			imap4->rd_source = g_io_add_watch(imap4->channel,
 					G_IO_OUT, _on_watch_can_read_ssl,
 					imap4);
 		else if(SSL_get_error(imap4->ssl, cnt) == SSL_ERROR_WANT_READ)
+			/* call SSL_read() again when it can read data */
 			imap4->rd_source = g_io_add_watch(imap4->channel,
 					G_IO_IN, _on_watch_can_read_ssl,
 					imap4);
 		else
 		{
+			/* unknown error */
 			imap4->rd_source = 0;
 			ERR_error_string(SSL_get_error(imap4->ssl, cnt), buf);
 			_imap4_event_status(imap4, AS_DISCONNECTED, buf);
