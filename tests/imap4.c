@@ -33,12 +33,13 @@ static int _imap4_list(char const * progname, char const * title,
 	if((cmd = malloc(sizeof(*cmd))) == NULL)
 		return -1;
 	memset(cmd, 0, sizeof(*cmd));
+	cmd->context = I4C_LIST;
 	cmd->data.list.parent = &folder;
 	memset(&folder, 0, sizeof(folder));
 	imap4->channel = -1; /* XXX */
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
-	ret = _context_list(imap4, list);
+	ret = _parse_context(imap4, list);
 	free(imap4->queue);
 	imap4->queue = NULL;
 	imap4->queue_cnt = 0;
