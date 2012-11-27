@@ -21,11 +21,11 @@ Mailer depends on the following components:
 
 With GCC, this should then be enough:
 
- $ make
+    $ make
 
 To install (or package) Mailer in a different location:
 
- $ make DESTDIR=/staging/directory PREFIX=/another/prefix install
+    $ make DESTDIR="/staging/directory" PREFIX="/another/prefix" install
 
 
 Documentation
