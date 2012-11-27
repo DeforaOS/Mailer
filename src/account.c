@@ -657,7 +657,7 @@ static Message * _account_helper_message_new(Account * account, Folder * folder,
 		AccountMessage * message)
 {
 	Message * ret;
-	GtkListStore * store;
+	GtkTreeStore * store;
 	GtkTreeIter iter;
 
 #ifdef DEBUG
@@ -666,12 +666,12 @@ static Message * _account_helper_message_new(Account * account, Folder * folder,
 	if(folder == NULL)
 		return message_new(message, NULL, NULL);
 	store = folder_get_messages(folder);
-	gtk_list_store_append(store, &iter);
+	gtk_tree_store_append(store, &iter, NULL);
 	if((ret = message_new(message, store, &iter)) == NULL)
-		gtk_list_store_remove(store, &iter);
+		gtk_tree_store_remove(store, &iter);
 	else
 	{
-		gtk_list_store_set(store, &iter, MHC_ACCOUNT, account,
+		gtk_tree_store_set(store, &iter, MHC_ACCOUNT, account,
 				MHC_FOLDER, folder, -1);
 		mailer_set_status(account->mailer, NULL);
 	}
@@ -682,12 +682,12 @@ static Message * _account_helper_message_new(Account * account, Folder * folder,
 /* account_helper_message_delete */
 static void _account_helper_message_delete(Message * message)
 {
-	GtkListStore * store;
+	GtkTreeStore * store;
 	GtkTreeIter iter;
 
 	if((store = message_get_store(message)) != NULL
 			&& message_get_iter(message, &iter) != FALSE)
-		gtk_list_store_remove(store, &iter);
+		gtk_tree_store_remove(store, &iter);
 	message_delete(message);
 }
 

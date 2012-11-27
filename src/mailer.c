@@ -3314,7 +3314,7 @@ static void _mailer_update_status(Mailer * mailer)
 /* mailer_update_view */
 static void _mailer_update_view(Mailer * mailer)
 {
-	GtkListStore * store;
+	GtkTreeStore * store;
 	GtkTreeModel * model;
 	GtkTextBuffer * tbuf;
 

@@ -27,7 +27,7 @@
 
 
 /* functions */
-Message * message_new(AccountMessage * message, GtkListStore * store,
+Message * message_new(AccountMessage * message, GtkTreeStore * store,
 		GtkTreeIter * iter);
 Message * message_new_open(Mailer * mailer, char const * filename);
 void message_delete(Message * message);
@@ -36,7 +36,7 @@ void message_delete(Message * message);
 GtkTextBuffer * message_get_body(Message * message);
 AccountMessage * message_get_data(Message * message);
 gboolean message_get_iter(Message * message, GtkTreeIter * iter);
-GtkListStore * message_get_store(Message * message);
+GtkTreeStore * message_get_store(Message * message);
 
 int message_set_body(Message * message, char const * buf, size_t cnt,
 		gboolean append);

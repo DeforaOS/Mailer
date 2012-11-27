@@ -38,7 +38,7 @@ struct _MailerFolder
 	GtkTreeStore * store;
 	GtkTreeRowReference * row;
 
-	GtkListStore * messages;
+	GtkTreeStore * messages;
 
 	AccountFolder * data;		/* for account plug-ins */
 };
@@ -72,7 +72,7 @@ Folder * folder_new(AccountFolder * folder, FolderType type, char const * name,
 	gtk_tree_path_free(path);
 	gtk_tree_store_set(store, iter, MFC_FOLDER, ret, MFC_NAME, name, -1);
 	folder_set_type(ret, type);
-	ret->messages = gtk_list_store_new(MHC_COUNT, G_TYPE_POINTER,
+	ret->messages = gtk_tree_store_new(MHC_COUNT, G_TYPE_POINTER,
 			G_TYPE_POINTER, G_TYPE_POINTER, GDK_TYPE_PIXBUF,
 			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT,
@@ -119,7 +119,7 @@ gboolean folder_get_iter(Folder * folder, GtkTreeIter * iter)
 
 
 /* folder_get_messages */
-GtkListStore * folder_get_messages(Folder * folder)
+GtkTreeStore * folder_get_messages(Folder * folder)
 {
 	return folder->messages;
 }

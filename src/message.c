@@ -37,7 +37,7 @@ typedef struct _MessageHeader
 
 struct _MailerMessage
 {
-	GtkListStore * store;
+	GtkTreeStore * store;
 	GtkTreeRowReference * row;
 
 	MessageHeader * headers;
@@ -89,7 +89,7 @@ static struct
 /* public */
 /* functions */
 /* message_new */
-Message * message_new(AccountMessage * message, GtkListStore * store,
+Message * message_new(AccountMessage * message, GtkTreeStore * store,
 		GtkTreeIter * iter)
 {
 	Message * ret;
@@ -107,7 +107,7 @@ Message * message_new(AccountMessage * message, GtkListStore * store,
 		ret->row = gtk_tree_row_reference_new(GTK_TREE_MODEL(store),
 				path);
 		gtk_tree_path_free(path);
-		gtk_list_store_set(store, iter, MHC_MESSAGE, ret, -1);
+		gtk_tree_store_set(store, iter, MHC_MESSAGE, ret, -1);
 	}
 	else
 		ret->row = NULL;
@@ -217,7 +217,7 @@ gboolean message_get_iter(Message * message, GtkTreeIter * iter)
 
 
 /* message_get_store */
-GtkListStore * message_get_store(Message * message)
+GtkTreeStore * message_get_store(Message * message)
 {
 	return message->store;
 }
@@ -453,7 +453,7 @@ static gboolean _message_set(Message * message, ...)
 	if(message_get_iter(message, &iter) != TRUE)
 		return FALSE;
 	va_start(ap, message);
-	gtk_list_store_set_valist(message->store, &iter, ap);
+	gtk_tree_store_set_valist(message->store, &iter, ap);
 	va_end(ap);
 	return TRUE;
 }
