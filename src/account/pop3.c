@@ -346,7 +346,7 @@ static POP3Command * _pop3_command(POP3 * pop3, POP3Context context,
 	if(pop3->channel == NULL)
 		return NULL;
 	/* queue the command */
-	len += 2;
+	len += 3;
 	if((p = realloc(pop3->queue, sizeof(*p) * (pop3->queue_cnt + 1)))
 			== NULL)
 		return NULL;
@@ -354,9 +354,9 @@ static POP3Command * _pop3_command(POP3 * pop3, POP3Context context,
 	p = &pop3->queue[pop3->queue_cnt];
 	p->context = context;
 	p->status = P3CS_QUEUED;
-	if((p->buf = malloc(len + 1)) == NULL)
+	if((p->buf = malloc(len)) == NULL)
 		return NULL;
-	p->buf_cnt = snprintf(p->buf, len + 1, "%s\r\n", command);
+	p->buf_cnt = snprintf(p->buf, len, "%s\r\n", command);
 	memset(&p->data, 0, sizeof(p->data));
 	if(pop3->queue_cnt++ == 0)
 	{

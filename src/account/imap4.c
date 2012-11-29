@@ -394,12 +394,13 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 			(void *)imap4->channel);
 #endif
 	/* abort if the command is invalid */
-	if(command == NULL || (len = strlen(command) + 9) == 0)
+	if(command == NULL || (len = strlen(command)) == 0)
 		return NULL;
 	/* abort if there is no active connection */
 	if(imap4->channel == NULL)
 		return NULL;
 	/* queue the command */
+	len += 9;
 	if((p = realloc(imap4->queue, sizeof(*p) * (imap4->queue_cnt + 1)))
 			== NULL)
 		return NULL;
