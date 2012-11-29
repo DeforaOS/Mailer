@@ -579,6 +579,18 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 			helper->message_set_body(message->message, "\r\n", 2,
 					1);
 			return 0;
+		case I4FS_HEADERS:
+			if(strcmp(answer, "") == 0)
+			{
+				/* beginning of the body */
+				cmd->data.fetch.status = I4FS_BODY;
+				helper->message_set_body(message->message, NULL,
+						0, 0);
+			}
+			else
+				helper->message_set_header(message->message,
+						answer);
+			return 0;
 		case I4FS_ID:
 			id = strtol(answer, &p, 10);
 			if(answer[0] == '\0' || *p != ' ')
@@ -598,18 +610,6 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 				cmd->data.fetch.message = message;
 			}
 			return (message != NULL) ? 0 : -1;
-		case I4FS_HEADERS:
-			if(strcmp(answer, "") == 0)
-			{
-				/* beginning of the body */
-				cmd->data.fetch.status = I4FS_BODY;
-				helper->message_set_body(message->message, NULL,
-						0, 0);
-			}
-			else
-				helper->message_set_header(message->message,
-						answer);
-			return 0;
 	}
 	return -1;
 }
