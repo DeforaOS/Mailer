@@ -284,6 +284,8 @@ static IMAP4 * _imap4_init(AccountPluginHelper * helper)
 /* imap4_destroy */
 static int _imap4_destroy(IMAP4 * imap4)
 {
+	size_t i;
+
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
@@ -293,6 +295,10 @@ static int _imap4_destroy(IMAP4 * imap4)
 #if 0 /* XXX do not free() */
 	_imap4_folder_delete(imap4, &imap4->folders);
 #endif
+	for(i = 0; i < sizeof(_imap4_config) / sizeof(*_imap4_config); i++)
+		if(_imap4_config[i].type == ACT_STRING
+				|| _imap4_config[i].type == ACT_PASSWORD)
+			free(imap4->config[i].value);
 	free(imap4->config);
 	free(imap4);
 	return 0;
