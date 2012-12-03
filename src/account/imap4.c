@@ -964,7 +964,9 @@ static void _imap4_folder_delete(IMAP4 * imap4, AccountFolder * folder)
 	for(i = 0; i < folder->folders_cnt; i++)
 		_imap4_folder_delete(imap4, folder->folders[i]);
 	free(folder->folders);
-	object_delete(folder);
+	/* XXX rather ugly */
+	if(folder != &imap4->folders)
+		object_delete(folder);
 }
 
 
