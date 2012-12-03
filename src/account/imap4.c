@@ -292,7 +292,7 @@ static int _imap4_destroy(IMAP4 * imap4)
 	if(imap4 == NULL) /* XXX _imap4_destroy() may be called uninitialized */
 		return 0;
 	_imap4_stop(imap4);
-#if 0 /* XXX do not free() */
+#if 1 /* XXX anything wrong here? */
 	_imap4_folder_delete(imap4, &imap4->folders);
 #endif
 	for(i = 0; i < sizeof(_imap4_config) / sizeof(*_imap4_config); i++)
