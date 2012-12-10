@@ -25,11 +25,27 @@
 /* types */
 typedef struct _MailerMessage Message;
 
+typedef enum _MailerMessageFlag
+{
+	MMF_READ	= 0x1,
+	MMF_ANSWERED	= 0x2,
+	MMF_URGENT	= 0x4,
+	MMF_DRAFT	= 0x8,
+	MMF_DELETED	= 0x10
+}
+MailerMessageFlag;
+
 typedef struct _AccountMessage AccountMessage;
 
 
 /* functions */
 /* accessors */
+/* flags */
+int message_get_flags(MailerMessage * message);
+void message_set_flag(MailerMessage * message, MailerMessageFlag flag);
+void message_set_flags(MailerMessage * message, int flags);
+
+/* headers */
 char const * message_get_header(MailerMessage * message, char const * header);
 
 /* useful */

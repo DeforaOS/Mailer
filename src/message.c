@@ -40,6 +40,8 @@ struct _MailerMessage
 	GtkTreeStore * store;
 	GtkTreeRowReference * row;
 
+	int flags;
+
 	MessageHeader * headers;
 	size_t headers_cnt;
 
@@ -111,6 +113,7 @@ Message * message_new(AccountMessage * message, GtkTreeStore * store,
 	}
 	else
 		ret->row = NULL;
+	ret->flags = 0;
 	ret->headers = NULL;
 	ret->headers_cnt = 0;
 	ret->body = NULL;
@@ -190,6 +193,13 @@ AccountMessage * message_get_data(Message * message)
 }
 
 
+/* message_get_flags */
+int message_get_flags(Message * message)
+{
+	return message->flags;
+}
+
+
 /* message_get_header */
 char const * message_get_header(Message * message, char const * header)
 {
@@ -252,6 +262,20 @@ int message_set_body(Message * message, char const * buf, size_t cnt,
 	gtk_text_buffer_get_end_iter(message->text, &iter);
 	gtk_text_buffer_insert(message->text, &iter, buf, cnt);
 	return 0;
+}
+
+
+/* message_set_flag */
+void message_set_flag(Message * message, MailerMessageFlag flag)
+{
+	message->flags |= flag;
+}
+
+
+/* message_set_flags */
+void message_set_flags(Message * message, int flags)
+{
+	message->flags = flags;
 }
 
 
