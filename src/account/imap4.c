@@ -119,6 +119,7 @@ typedef struct _IMAP4Command
 			AccountMessage * message;
 			unsigned int id;
 			IMAP4FetchStatus status;
+			unsigned int size;
 		} fetch;
 
 		struct
@@ -561,6 +562,7 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 	AccountMessage * message = cmd->data.fetch.message;
 	unsigned int id = cmd->data.fetch.id;
 	char * p;
+	size_t i;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%p, \"%s\")\n", __func__, (void *)folder,
@@ -605,11 +607,30 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 			if(cmd->data.fetch.id != id)
 				cmd->data.fetch.id = id;
 #ifdef DEBUG
-			fprintf(stderr, "DEBUG: %s() %u\n", __func__, id);
+			fprintf(stderr, "DEBUG: %s() id=%u\n", __func__, id);
 #endif
 			answer = p;
 			if(strncmp(answer, " FETCH ", 7) != 0)
 				return 0;
+			/* skip spaces */
+			for(i = 7; answer[i] == ' '; i++);
+			if(answer[i++] != '(')
+				return 0;
+			/* skip the command's name */
+			for(; answer[i] != '\0' && answer[i] != ' '; i++);
+			/* skip spaces */
+			for(; answer[i] == ' '; i++);
+			/* obtain the size */
+			if(answer[i++] != '{')
+				return 0;
+			cmd->data.fetch.size = strtoul(&answer[i], &p, 10);
+			if(answer[i] == '\0' || *p != '}'
+					|| cmd->data.fetch.size == 0)
+				return 0;
+#ifdef DEBUG
+			fprintf(stderr, "DEBUG: %s() size=%u\n", __func__,
+					cmd->data.fetch.size);
+#endif
 			if((message = _imap4_folder_get_message(imap4, folder,
 							id)) != NULL)
 			{
@@ -774,6 +795,7 @@ static int _context_select(IMAP4 * imap4)
 	cmd->data.fetch.message = message;
 	cmd->data.fetch.id = (message != NULL) ? message->id : 0;
 	cmd->data.fetch.status = I4FS_ID;
+	cmd->data.fetch.size = 0;
 	return 0;
 }
 
