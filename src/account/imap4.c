@@ -576,19 +576,25 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 	switch(cmd->data.fetch.status)
 	{
 		case I4FS_BODY:
-#if 1 /* FIXME dirty hack for now */
-			if(strcmp(answer, ")") == 0)
+			/* check the size */
+			if(cmd->data.fetch.size == 0)
 			{
-				cmd->data.fetch.status = I4FS_ID;
+				/* XXX may not be the case (flags...) */
+				if(strcmp(answer, ")") == 0)
+					cmd->data.fetch.status = I4FS_ID;
 				return 0;
 			}
-#endif
+			if((i = strlen(answer) + 2) <= cmd->data.fetch.size)
+				cmd->data.fetch.size -= i;
 			helper->message_set_body(message->message, answer,
 					strlen(answer), 1);
 			helper->message_set_body(message->message, "\r\n", 2,
 					1);
 			return 0;
 		case I4FS_HEADERS:
+			/* check the size */
+			if((i = strlen(answer) + 2) <= cmd->data.fetch.size)
+				cmd->data.fetch.size -= i;
 			if(strcmp(answer, "") == 0)
 			{
 				/* beginning of the body */
@@ -596,6 +602,10 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 				helper->message_set_body(message->message, NULL,
 						0, 0);
 			}
+			/* XXX check this before parsing anything */
+			else if(cmd->data.fetch.size == 0
+					|| i > cmd->data.fetch.size)
+				return 0;
 			else
 				helper->message_set_header(message->message,
 						answer);
