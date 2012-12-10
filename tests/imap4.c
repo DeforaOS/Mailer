@@ -21,6 +21,52 @@
 #include "../src/account/imap4.c"
 
 
+/* prototypes */
+static int _imap4_fetch(char const * progname, char const * title,
+		IMAP4 * imap4, unsigned int id, char const * fetch,
+		unsigned int size);
+static int _imap4_list(char const * progname, char const * title,
+		IMAP4 * imap4, char const * list);
+static int _imap4_status(char const * progname, char const * title,
+		IMAP4 * imap4, char const * status);
+
+/* helpers */
+static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
+		Folder * parent, FolderType type, char const * Name);
+static Message * _helper_message_new(Account * account, Folder * folder,
+		AccountMessage * message);
+
+
+/* functions */
+/* imap4_fetch */
+static int _imap4_fetch(char const * progname, char const * title,
+		IMAP4 * imap4, unsigned int id, char const * fetch,
+		unsigned int size)
+{
+	int ret;
+	IMAP4Command * cmd;
+	AccountFolder folder;
+
+	printf("%s: Testing %s\n", progname, title);
+	if((cmd = malloc(sizeof(*cmd))) == NULL)
+		return -1;
+	memset(cmd, 0, sizeof(*cmd));
+	cmd->context = I4C_FETCH;
+	cmd->data.fetch.folder = &folder;
+	cmd->data.fetch.id = id;
+	cmd->data.fetch.status = I4FS_ID;
+	memset(&folder, 0, sizeof(folder));
+	imap4->channel = -1; /* XXX */
+	imap4->queue = cmd;
+	imap4->queue_cnt = 1;
+	if((ret = _parse_context(imap4, fetch)) == 0)
+		ret = (cmd->data.fetch.size == size) ? 0
+			: -error_set_print(progname, 1, "%s", "Wrong size");
+	free(cmd);
+	return ret;
+}
+
+
 /* imap4_list */
 static int _imap4_list(char const * progname, char const * title,
 		IMAP4 * imap4, char const * list)
@@ -40,10 +86,7 @@ static int _imap4_list(char const * progname, char const * title,
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
 	ret = _parse_context(imap4, list);
-	free(imap4->queue);
-	imap4->queue = NULL;
-	imap4->queue_cnt = 0;
-	imap4->channel = NULL;
+	free(cmd);
 	return ret;
 }
 
@@ -58,6 +101,7 @@ static int _imap4_status(char const * progname, char const * title,
 
 
 /* helpers */
+/* helper_folder_new */
 static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
 		Folder * parent, FolderType type, char const * Name)
 {
@@ -65,6 +109,17 @@ static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
 
 	memset(&af, 0, sizeof(af));
 	return &af;
+}
+
+
+/* helper_message_new */
+static Message * _helper_message_new(Account * account, Folder * folder,
+		AccountMessage * message)
+{
+	static AccountMessage am;
+
+	memset(&am, 0, sizeof(am));
+	return &am;
 }
 
 
@@ -77,9 +132,13 @@ int main(int argc, char * argv[])
 	char const list[] = "LIST (\\Noselect \\No \\Yes) \"/\" ~/Mail/foo";
 	char const status[] = "STATUS \"~/Mail/foo\""
 		" (MESSAGES 3 RECENT 2 UNSEEN 1)";
+	unsigned int fetch_id = 12;
+	char const fetch[] = "12 FETCH (RFC822 {1024}";
+	unsigned int fetch_size = 1024;
 
 	memset(&helper, 0, sizeof(helper));
 	helper.folder_new = _helper_folder_new;
+	helper.message_new = _helper_message_new;
 	memset(&imap4, 0, sizeof(imap4));
 	imap4.helper = &helper;
 	ret |= _imap4_list(argv[0], "LIST (1/1)", &imap4, list);
@@ -87,5 +146,7 @@ int main(int argc, char * argv[])
 	ret |= _imap4_status(argv[0], "STATUS (2/4)", &imap4, "()");
 	ret |= _imap4_status(argv[0], "STATUS (3/4)", &imap4, "( )");
 	ret |= _imap4_status(argv[0], "STATUS (4/4)", &imap4, "");
+	ret |= _imap4_fetch(argv[0], "FETCH (1/1)", &imap4, fetch_id, fetch,
+			fetch_size);
 	return (ret == 0) ? 0 : 2;
 }
