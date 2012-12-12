@@ -31,6 +31,7 @@ static int _imap4_status(char const * progname, char const * title,
 		IMAP4 * imap4, char const * status);
 
 /* helpers */
+static void _helper_event(Account * account, AccountEvent * event);
 static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
 		Folder * parent, FolderType type, char const * Name);
 static Message * _helper_message_new(Account * account, Folder * folder,
@@ -62,7 +63,8 @@ static int _imap4_fetch(char const * progname, char const * title,
 	if((ret = _parse_context(imap4, fetch)) == 0)
 		ret = (cmd->data.fetch.size == size) ? 0
 			: -error_set_print(progname, 1, "%s", "Wrong size");
-	free(cmd);
+	imap4->channel = 0; /* XXX */
+	_imap4_stop(imap4);
 	return ret;
 }
 
@@ -86,7 +88,8 @@ static int _imap4_list(char const * progname, char const * title,
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
 	ret = _parse_context(imap4, list);
-	free(cmd);
+	imap4->channel = 0; /* XXX */
+	_imap4_stop(imap4);
 	return ret;
 }
 
@@ -101,6 +104,12 @@ static int _imap4_status(char const * progname, char const * title,
 
 
 /* helpers */
+/* helper_event */
+static void _helper_event(Account * account, AccountEvent * event)
+{
+}
+
+
 /* helper_folder_new */
 static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
 		Folder * parent, FolderType type, char const * Name)
@@ -137,6 +146,7 @@ int main(int argc, char * argv[])
 	unsigned int fetch_size = 1024;
 
 	memset(&helper, 0, sizeof(helper));
+	helper.event = _helper_event;
 	helper.folder_new = _helper_folder_new;
 	helper.message_new = _helper_message_new;
 	memset(&imap4, 0, sizeof(imap4));
