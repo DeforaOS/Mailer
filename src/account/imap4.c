@@ -460,6 +460,11 @@ static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
 /* imap4_parse */
 static int _parse_context(IMAP4 * imap4, char const * answer);
 static int _context_fetch(IMAP4 * imap4, char const * answer);
+static int _context_fetch_body(IMAP4 * imap4, char const * answer);
+static int _context_fetch_command(IMAP4 * imap4, char const * answer);
+static int _context_fetch_flags(IMAP4 * imap4, char const * answer);
+static int _context_fetch_headers(IMAP4 * imap4, char const * answer);
+static int _context_fetch_id(IMAP4 * imap4, char const * answer);
 static int _context_init(IMAP4 * imap4);
 static int _context_list(IMAP4 * imap4, char const * answer);
 static int _context_login(IMAP4 * imap4, char const * answer);
@@ -558,13 +563,7 @@ static int _parse_context(IMAP4 * imap4, char const * answer)
 
 static int _context_fetch(IMAP4 * imap4, char const * answer)
 {
-	AccountPluginHelper * helper = imap4->helper;
 	IMAP4Command * cmd = &imap4->queue[0];
-	AccountFolder * folder = cmd->data.fetch.folder;
-	AccountMessage * message = cmd->data.fetch.message;
-	unsigned int id = cmd->data.fetch.id;
-	char * p;
-	size_t i;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%p, \"%s\")\n", __func__, (void *)folder,
@@ -578,120 +577,164 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 	switch(cmd->data.fetch.status)
 	{
 		case I4FS_ID:
-			id = strtol(answer, &p, 10);
-			if(answer[0] == '\0' || *p != ' ')
-				return 0;
-			cmd->data.fetch.id = id;
-#ifdef DEBUG
-			fprintf(stderr, "DEBUG: %s() id=%u\n", __func__, id);
-#endif
-			answer = p;
-			if(strncmp(answer, " FETCH ", 7) != 0)
-				return -1;
-			/* skip spaces */
-			for(i = 7; answer[i] == ' '; i++);
-			if(answer[i++] != '(')
-				return 0;
-			/* fallback */
-			answer = &answer[i];
-			cmd->data.fetch.status = I4FS_COMMAND;
+			return _context_fetch_id(imap4, answer);
 		case I4FS_COMMAND:
-			/* skip spaces */
-			for(i = 0; answer[i] == ' '; i++);
-			if(strncmp(&answer[i], "FLAGS ", 6) == 0)
-			{
-				cmd->data.fetch.status = I4FS_FLAGS;
-				return _context_fetch(imap4, answer);
-			}
-			/* XXX assumes this is going to be a message content */
-			/* skip the command's name */
-			for(; answer[i] != '\0' && answer[i] != ' '; i++);
-			/* skip spaces */
-			for(; answer[i] == ' '; i++);
-			/* obtain the size */
-			if(answer[i] != '{')
-				return -1;
-			cmd->data.fetch.size = strtoul(&answer[++i], &p, 10);
-			if(answer[i] == '\0' || *p != '}'
-					|| cmd->data.fetch.size == 0)
-				return -1;
-			if((message = _imap4_folder_get_message(imap4, folder,
-							id)) != NULL)
-			{
-				cmd->data.fetch.status = I4FS_HEADERS;
-				cmd->data.fetch.message = message;
-			}
-			return (message != NULL) ? 0 : -1;
+			return _context_fetch_command(imap4, answer);
 		case I4FS_FLAGS:
-			/* skip spaces */
-			for(i = 0; answer[i] == ' '; i++);
-			if(strncmp(&answer[i], "FLAGS ", 6) != 0)
-			{
-				cmd->data.fetch.status = I4FS_ID;
-				return -1;
-			}
-			/* skip spaces */
-			for(i += 6; answer[i] == ' '; i++);
-			if(answer[i] != '(')
-				return -1;
-			/* FIXME really parse the flags */
-			for(i++; answer[i] != '\0' && answer[i] != ')'; i++);
-			if(answer[i] != ')')
-				return -1;
-			/* skip spaces */
-			for(i++; answer[i] == ' '; i++);
-			if(answer[i] == ')')
-			{
-				/* the current command seems to be completed */
-				cmd->data.fetch.status = I4FS_ID;
-				return 0;
-			}
-			cmd->data.fetch.status = I4FS_COMMAND;
-			return _context_fetch(imap4, &answer[i]);
+			return _context_fetch_flags(imap4, answer);
 		case I4FS_BODY:
-			/* check the size */
-			if(cmd->data.fetch.size == 0)
-			{
-				/* XXX may not be the case (flags...) */
-				if(strcmp(answer, ")") == 0)
-				{
-					cmd->data.fetch.status = I4FS_ID;
-					return 0;
-				}
-				else
-				{
-					cmd->data.fetch.status = I4FS_COMMAND;
-					return _context_fetch(imap4, answer);
-				}
-			}
-			if((i = strlen(answer) + 2) <= cmd->data.fetch.size)
-				cmd->data.fetch.size -= i;
-			helper->message_set_body(message->message, answer,
-					strlen(answer), 1);
-			helper->message_set_body(message->message, "\r\n", 2,
-					1);
-			return 0;
+			return _context_fetch_body(imap4, answer);
 		case I4FS_HEADERS:
-			/* check the size */
-			if((i = strlen(answer) + 2) <= cmd->data.fetch.size)
-				cmd->data.fetch.size -= i;
-			if(strcmp(answer, "") == 0)
-			{
-				/* beginning of the body */
-				cmd->data.fetch.status = I4FS_BODY;
-				helper->message_set_body(message->message, NULL,
-						0, 0);
-			}
-			/* XXX check this before parsing anything */
-			else if(cmd->data.fetch.size == 0
-					|| i > cmd->data.fetch.size)
-				return 0;
-			else
-				helper->message_set_header(message->message,
-						answer);
-			return 0;
+			return _context_fetch_headers(imap4, answer);
 	}
 	return -1;
+}
+
+static int _context_fetch_body(IMAP4 * imap4, char const * answer)
+{
+	AccountPluginHelper * helper = imap4->helper;
+	IMAP4Command * cmd = &imap4->queue[0];
+	AccountMessage * message = cmd->data.fetch.message;
+	size_t i;
+
+	/* check the size */
+	if(cmd->data.fetch.size == 0)
+	{
+		/* XXX may not be the case (flags...) */
+		if(strcmp(answer, ")") == 0)
+		{
+			cmd->data.fetch.status = I4FS_ID;
+			return 0;
+		}
+		else
+		{
+			cmd->data.fetch.status = I4FS_COMMAND;
+			return _context_fetch(imap4, answer);
+		}
+	}
+	if((i = strlen(answer) + 2) <= cmd->data.fetch.size)
+		cmd->data.fetch.size -= i;
+	helper->message_set_body(message->message, answer, strlen(answer), 1);
+	helper->message_set_body(message->message, "\r\n", 2, 1);
+	return 0;
+}
+
+static int _context_fetch_command(IMAP4 * imap4, char const * answer)
+{
+	IMAP4Command * cmd = &imap4->queue[0];
+	AccountFolder * folder = cmd->data.fetch.folder;
+	AccountMessage * message = cmd->data.fetch.message;
+	unsigned int id = cmd->data.fetch.id;
+	char * p;
+	size_t i;
+
+	/* skip spaces */
+	for(i = 0; answer[i] == ' '; i++);
+	if(strncmp(&answer[i], "FLAGS ", 6) == 0)
+	{
+		cmd->data.fetch.status = I4FS_FLAGS;
+		return _context_fetch(imap4, answer);
+	}
+	/* XXX assumes this is going to be a message content */
+	/* skip the command's name */
+	for(; answer[i] != '\0' && answer[i] != ' '; i++);
+	/* skip spaces */
+	for(; answer[i] == ' '; i++);
+	/* obtain the size */
+	if(answer[i] != '{')
+		return -1;
+	cmd->data.fetch.size = strtoul(&answer[++i], &p, 10);
+	if(answer[i] == '\0' || *p != '}' || cmd->data.fetch.size == 0)
+		return -1;
+	if((message = _imap4_folder_get_message(imap4, folder, id)) != NULL)
+	{
+		cmd->data.fetch.status = I4FS_HEADERS;
+		cmd->data.fetch.message = message;
+	}
+	return (message != NULL) ? 0 : -1;
+}
+
+static int _context_fetch_flags(IMAP4 * imap4, char const * answer)
+{
+	IMAP4Command * cmd = &imap4->queue[0];
+	size_t i;
+
+	/* skip spaces */
+	for(i = 0; answer[i] == ' '; i++);
+	if(strncmp(&answer[i], "FLAGS ", 6) != 0)
+	{
+		cmd->data.fetch.status = I4FS_ID;
+		return -1;
+	}
+	/* skip spaces */
+	for(i += 6; answer[i] == ' '; i++);
+	if(answer[i] != '(')
+		return -1;
+	/* FIXME really parse the flags */
+	for(i++; answer[i] != '\0' && answer[i] != ')'; i++);
+	if(answer[i] != ')')
+		return -1;
+	/* skip spaces */
+	for(i++; answer[i] == ' '; i++);
+	if(answer[i] == ')')
+	{
+		/* the current command seems to be completed */
+		cmd->data.fetch.status = I4FS_ID;
+		return 0;
+	}
+	cmd->data.fetch.status = I4FS_COMMAND;
+	return _context_fetch(imap4, &answer[i]);
+}
+
+static int _context_fetch_headers(IMAP4 * imap4, char const * answer)
+{
+	AccountPluginHelper * helper = imap4->helper;
+	IMAP4Command * cmd = &imap4->queue[0];
+	AccountMessage * message = cmd->data.fetch.message;
+	size_t i;
+
+	/* check the size */
+	if((i = strlen(answer) + 2) <= cmd->data.fetch.size)
+		cmd->data.fetch.size -= i;
+	if(strcmp(answer, "") == 0)
+	{
+		/* beginning of the body */
+		cmd->data.fetch.status = I4FS_BODY;
+		helper->message_set_body(message->message, NULL, 0, 0);
+	}
+	/* XXX check this before parsing anything */
+	else if(cmd->data.fetch.size == 0 || i > cmd->data.fetch.size)
+		return 0;
+	else
+		helper->message_set_header(message->message, answer);
+	return 0;
+}
+
+static int _context_fetch_id(IMAP4 * imap4, char const * answer)
+{
+	IMAP4Command * cmd = &imap4->queue[0];
+	unsigned int id = cmd->data.fetch.id;
+	char * p;
+	size_t i;
+
+	id = strtol(answer, &p, 10);
+	if(answer[0] == '\0' || *p != ' ')
+		return 0;
+	cmd->data.fetch.id = id;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() id=%u\n", __func__, id);
+#endif
+	answer = p;
+	if(strncmp(answer, " FETCH ", 7) != 0)
+		return -1;
+	/* skip spaces */
+	for(i = 7; answer[i] == ' '; i++);
+	if(answer[i++] != '(')
+		return 0;
+	/* fallback */
+	answer = &answer[i];
+	cmd->data.fetch.status = I4FS_COMMAND;
+	return _context_fetch_command(imap4, answer);
 }
 
 static int _context_init(IMAP4 * imap4)
