@@ -25,6 +25,8 @@
 static int _imap4_fetch(char const * progname, char const * title,
 		IMAP4 * imap4, unsigned int id, char const * fetch,
 		unsigned int size);
+static int _imap4_flags(char const * progname, char const * title,
+		IMAP4 * imap4, unsigned int id, char const * flags);
 static int _imap4_list(char const * progname, char const * title,
 		IMAP4 * imap4, char const * list);
 static int _imap4_status(char const * progname, char const * title,
@@ -63,6 +65,33 @@ static int _imap4_fetch(char const * progname, char const * title,
 	if((ret = _parse_context(imap4, fetch)) == 0)
 		ret = (cmd->data.fetch.size == size) ? 0
 			: -error_set_print(progname, 1, "%s", "Wrong size");
+	imap4->channel = 0; /* XXX */
+	_imap4_stop(imap4);
+	return ret;
+}
+
+
+/* imap4_flags */
+static int _imap4_flags(char const * progname, char const * title,
+		IMAP4 * imap4, unsigned int id, char const * flags)
+{
+	int ret;
+	IMAP4Command * cmd;
+	AccountFolder folder;
+
+	printf("%s: Testing %s\n", progname, title);
+	if((cmd = malloc(sizeof(*cmd))) == NULL)
+		return -1;
+	memset(cmd, 0, sizeof(*cmd));
+	cmd->context = I4C_FETCH;
+	cmd->data.fetch.folder = &folder;
+	cmd->data.fetch.id = id;
+	cmd->data.fetch.status = I4FS_FLAGS;
+	memset(&folder, 0, sizeof(folder));
+	imap4->channel = -1; /* XXX */
+	imap4->queue = cmd;
+	imap4->queue_cnt = 1;
+	ret = _context_fetch(imap4, flags);
 	imap4->channel = 0; /* XXX */
 	_imap4_stop(imap4);
 	return ret;
@@ -144,6 +173,8 @@ int main(int argc, char * argv[])
 	unsigned int fetch_id = 12;
 	char const fetch[] = "12 FETCH (RFC822 {1024}";
 	unsigned int fetch_size = 1024;
+	unsigned int flags_id = 12;
+	char const flags[] = "FLAGS (\\Seen \\Answered))";
 
 	memset(&helper, 0, sizeof(helper));
 	helper.event = _helper_event;
@@ -158,5 +189,6 @@ int main(int argc, char * argv[])
 	ret |= _imap4_status(argv[0], "STATUS (4/4)", &imap4, "");
 	ret |= _imap4_fetch(argv[0], "FETCH (1/1)", &imap4, fetch_id, fetch,
 			fetch_size);
+	ret |= _imap4_flags(argv[0], "FLAGS (1/1)", &imap4, flags_id, flags);
 	return (ret == 0) ? 0 : 2;
 }
