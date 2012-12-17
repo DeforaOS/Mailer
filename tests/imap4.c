@@ -78,6 +78,7 @@ static int _imap4_flags(char const * progname, char const * title,
 	int ret;
 	IMAP4Command * cmd;
 	AccountFolder folder;
+	AccountMessage message;
 
 	printf("%s: Testing %s\n", progname, title);
 	if((cmd = malloc(sizeof(*cmd))) == NULL)
@@ -85,9 +86,11 @@ static int _imap4_flags(char const * progname, char const * title,
 	memset(cmd, 0, sizeof(*cmd));
 	cmd->context = I4C_FETCH;
 	cmd->data.fetch.folder = &folder;
+	cmd->data.fetch.message = &message;
 	cmd->data.fetch.id = id;
 	cmd->data.fetch.status = I4FS_FLAGS;
-	memset(&folder, 0, sizeof(folder));
+	memset(&folder, 0, sizeof(&folder));
+	memset(&message, 0, sizeof(&message));
 	imap4->channel = -1; /* XXX */
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
@@ -161,6 +164,12 @@ static Message * _helper_message_new(Account * account, Folder * folder,
 }
 
 
+/* helper_message_set_flag */
+static void _helper_message_set_flag(Message * message, MailerMessageFlag flag)
+{
+}
+
+
 /* main */
 int main(int argc, char * argv[])
 {
@@ -180,6 +189,7 @@ int main(int argc, char * argv[])
 	helper.event = _helper_event;
 	helper.folder_new = _helper_folder_new;
 	helper.message_new = _helper_message_new;
+	helper.message_set_flag = _helper_message_set_flag;
 	memset(&imap4, 0, sizeof(imap4));
 	imap4.helper = &helper;
 	ret |= _imap4_list(argv[0], "LIST (1/1)", &imap4, list);

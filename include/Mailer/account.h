@@ -112,6 +112,8 @@ typedef struct _AccountPluginHelper
 	Message * (*message_new)(Account * account, Folder * folder,
 			AccountMessage * message);
 	void (*message_delete)(Message * message);
+	void (*message_set_flag)(MailerMessage * message,
+			MailerMessageFlag flag);
 	int (*message_set_header)(Message * message, char const * header);
 	int (*message_set_body)(Message * message, char const * buf, size_t cnt,
 			int append);

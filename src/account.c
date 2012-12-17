@@ -97,6 +97,7 @@ static const AccountPluginHelper _account_plugin_helper =
 	_account_helper_folder_delete,
 	_account_helper_message_new,
 	_account_helper_message_delete,
+	message_set_flag,
 	message_set_header,
 	_account_helper_message_set_body
 };

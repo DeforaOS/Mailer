@@ -656,8 +656,20 @@ static int _context_fetch_command(IMAP4 * imap4, char const * answer)
 
 static int _context_fetch_flags(IMAP4 * imap4, char const * answer)
 {
+	AccountPluginHelper * helper = imap4->helper;
 	IMAP4Command * cmd = &imap4->queue[0];
+	AccountMessage * message = cmd->data.fetch.message;
 	size_t i;
+	size_t j;
+	size_t k;
+	struct
+	{
+		char const * name;
+		MailerMessageFlag flag;
+	} flags[] = {
+		{ "Answered",	MMF_ANSWERED	},
+		{ "Draft",	MMF_DRAFT	}
+	};
 
 	/* skip spaces */
 	for(i = 0; answer[i] == ' '; i++);
@@ -670,8 +682,19 @@ static int _context_fetch_flags(IMAP4 * imap4, char const * answer)
 	for(i += 6; answer[i] == ' '; i++);
 	if(answer[i] != '(')
 		return -1;
-	/* FIXME really parse the flags */
-	for(i++; answer[i] != '\0' && answer[i] != ')'; i++);
+	for(i++; answer[i] != '\0' && answer[i] != ')';)
+	{
+		if(answer[i++] != '\\')
+			return -1;
+		for(j = i; isalpha((unsigned char)answer[j]); j++);
+		/* apply the flag */
+		for(k = 0; k < sizeof(flags) / sizeof(*flags); k++)
+			if(strncmp(&answer[i], flags[k].name, j - i) == 0)
+				helper->message_set_flag(message->message,
+						flags[k].flag);
+		/* skip spaces */
+		for(i = j; answer[i] == ' '; i++);
+	}
 	if(answer[i] != ')')
 		return -1;
 	/* skip spaces */
