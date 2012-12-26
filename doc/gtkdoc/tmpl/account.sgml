@@ -39,11 +39,31 @@ Account
 @ACT_BOOLEAN: 
 @ACT_SEPARATOR: 
 
+<!-- ##### ENUM AccountEventType ##### -->
+<para>
+
+</para>
+
+@AET_STARTED: 
+@AET_STOPPED: 
+@AET_STATUS: 
+
 <!-- ##### STRUCT AccountPlugin ##### -->
 <para>
 
 </para>
 
+
+<!-- ##### ENUM AccountStatus ##### -->
+<para>
+
+</para>
+
+@AS_CONNECTING: 
+@AS_CONNECTED: 
+@AS_DISCONNECTED: 
+@AS_AUTHENTICATED: 
+@AS_IDLE: 
 
 <!-- ##### USER_FUNCTION authenticate ##### -->
 <para>
@@ -83,6 +103,15 @@ Account
 @message: 
 @ret: 
 @Returns: 
+
+
+<!-- ##### USER_FUNCTION event ##### -->
+<para>
+
+</para>
+
+@account: 
+@event: 
 
 
 <!-- ##### USER_FUNCTION folder_delete ##### -->
@@ -194,15 +223,5 @@ Account
 @folder: 
 @message: 
 @Returns: 
-
-
-<!-- ##### USER_FUNCTION status ##### -->
-<para>
-
-</para>
-
-@account: 
-@format: 
-@...: 
 
 

@@ -1,5 +1,5 @@
 PACKAGE="Mailer"
-VERSION="0.1.5"
+VERSION="0.1.6"
 
 PREFIX="/usr/local"
 LIBDIR="${PREFIX}/lib"

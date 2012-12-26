@@ -46,15 +46,6 @@ MailerPlugin
 @Returns: 
 
 
-<!-- ##### FUNCTION folder_get_messages ##### -->
-<para>
-
-</para>
-
-@folder: 
-@Returns: 
-
-
 <!-- ##### USER_FUNCTION get_widget ##### -->
 <para>
 

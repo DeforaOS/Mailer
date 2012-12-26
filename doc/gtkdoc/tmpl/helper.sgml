@@ -20,6 +20,16 @@ Helper
 <!-- ##### SECTION Image ##### -->
 
 
+<!-- ##### FUNCTION mailer_helper_get_date ##### -->
+<para>
+
+</para>
+
+@date: 
+@tm: 
+@Returns: 
+
+
 <!-- ##### FUNCTION mailer_helper_get_email ##### -->
 <para>
 

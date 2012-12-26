@@ -26,7 +26,7 @@ Message
 </para>
 
 
-<!-- ##### STRUCT Message ##### -->
+<!-- ##### TYPEDEF Message ##### -->
 <para>
 
 </para>
@@ -39,6 +39,16 @@ Message
 
 @message: 
 @header: 
+@Returns: 
+
+
+<!-- ##### FUNCTION message_save ##### -->
+<para>
+
+</para>
+
+@message: 
+@filename: 
 @Returns: 
 
 

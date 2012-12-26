@@ -54,6 +54,12 @@ Mailer
 </para>
 
 
+<!-- ##### STRUCT MailerFolder ##### -->
+<para>
+
+</para>
+
+
 <!-- ##### ENUM MailerFolderColumn ##### -->
 <para>
 
@@ -84,4 +90,10 @@ Mailer
 @MHC_DATE_DISPLAY: 
 @MHC_READ: 
 @MHC_WEIGHT: 
+
+<!-- ##### STRUCT MailerMessage ##### -->
+<para>
+
+</para>
+
 

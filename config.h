@@ -1,5 +1,5 @@
 #define PACKAGE "Mailer"
-#define VERSION "0.1.5"
+#define VERSION "0.1.6"
 
 #ifndef PREFIX
 # define PREFIX "/usr/local"
