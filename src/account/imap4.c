@@ -803,7 +803,7 @@ static int _context_list(IMAP4 * imap4, char const * answer)
 	p += 5;
 	if(*p == '(') /* parse flags */
 	{
-		for(p++; *p == '\\'; p++)
+		for(p++; *p == '\\';)
 		{
 #ifdef DEBUG
 			fprintf(stderr, "DEBUG: %s() flag \"%s\"\n", __func__,
@@ -812,12 +812,14 @@ static int _context_list(IMAP4 * imap4, char const * answer)
 			if(strncmp(p, haschildren, sizeof(haschildren) - 1)
 					== 0)
 			{
-				p += sizeof(haschildren) - 2;
+				p += sizeof(haschildren) - 1;
 				recurse = 1;
 			}
 			else
 				/* skip until end of flag */
 				for(p++; isalnum((unsigned char)*p); p++);
+			/* skip spaces */
+			for(; *p == ' '; p++);
 			if(*p == ')')
 				break;
 		}
