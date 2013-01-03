@@ -39,8 +39,18 @@ time_t mailer_helper_get_date(char const * date, struct tm * tm)
 				|| _date_do(date, "%d/%m/%Y %T %z", tm) == 0
 				|| _date_do(date, "%d/%m/%Y %T", tm) == 0
 				|| _date_do(date, "%FT%TZ", tm) == 0)
+		{
+			/* fix the date if missing the century */
+			if(tm->tm_year >= -1830 && tm->tm_year < -1800)
+				tm->tm_year += 1900;
+			else if(tm->tm_year >= -1900 && tm->tm_year < -1830)
+				tm->tm_year += 2000;
 			return mktime(tm);
+		}
 	/* XXX fallback to the current time and date */
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, date);
+#endif
 	t = time(NULL);
 	gmtime_r(&t, tm);
 	return t;
