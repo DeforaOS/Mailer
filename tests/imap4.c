@@ -59,13 +59,13 @@ static int _imap4_fetch(char const * progname, char const * title,
 	cmd->data.fetch.id = id;
 	cmd->data.fetch.status = I4FS_ID;
 	memset(&folder, 0, sizeof(folder));
-	imap4->channel = -1; /* XXX */
+	imap4->channel = (GIOChannel *)-1; /* XXX */
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
 	if((ret = _parse_context(imap4, fetch)) == 0)
 		ret = (cmd->data.fetch.size == size) ? 0
 			: -error_set_print(progname, 1, "%s", "Wrong size");
-	imap4->channel = 0; /* XXX */
+	imap4->channel = NULL;
 	_imap4_stop(imap4);
 	return ret;
 }
@@ -91,11 +91,11 @@ static int _imap4_flags(char const * progname, char const * title,
 	cmd->data.fetch.status = I4FS_FLAGS;
 	memset(&folder, 0, sizeof(&folder));
 	memset(&message, 0, sizeof(&message));
-	imap4->channel = -1; /* XXX */
+	imap4->channel = (GIOChannel *)-1; /* XXX */
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
 	ret = _context_fetch(imap4, flags);
-	imap4->channel = 0; /* XXX */
+	imap4->channel = NULL;
 	_imap4_stop(imap4);
 	return ret;
 }
@@ -116,11 +116,11 @@ static int _imap4_list(char const * progname, char const * title,
 	cmd->context = I4C_LIST;
 	cmd->data.list.parent = &folder;
 	memset(&folder, 0, sizeof(folder));
-	imap4->channel = -1; /* XXX */
+	imap4->channel = (GIOChannel *)-1; /* XXX */
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
 	ret = _parse_context(imap4, list);
-	imap4->channel = 0; /* XXX */
+	imap4->channel = NULL;
 	_imap4_stop(imap4);
 	return ret;
 }
