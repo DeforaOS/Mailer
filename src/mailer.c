@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2006-2012 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2006-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Desktop Mailer */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -844,7 +844,7 @@ static GtkWidget * _new_headers(Mailer * mailer)
 		{ N_(" From: "),	NULL	},
 		{ N_(" To: "),		NULL	},
 		{ N_(" Date: "),	NULL	},
-		{ NULL,		NULL	}
+		{ NULL,			NULL	}
 	};
 	int i;
 	GtkWidget * vbox;
@@ -1133,6 +1133,7 @@ int mailer_account_add(Mailer * mailer, Account * account)
 	mailer->account = p;
 	mailer->account[mailer->account_cnt] = account;
 	mailer->account_cnt++;
+	account_store(account, mailer->fo_store);
 	/* XXX check (and report) errors */
 	if(mailer_is_online(mailer))
 		account_start(account);
@@ -2155,10 +2156,12 @@ static void _on_assistant_apply(gpointer data)
 	GtkTreeModel * model;
 	GtkTreeIter iter;
 
+	/* XXX check for errors */
+	account_init(ad->account);
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(ad->mailer->pr_accounts));
 	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 #ifdef DEBUG
-	fprintf(stderr, "%s%p%s%s%s%s\n", "AC_DATA ", (void*)ad->account,
+	fprintf(stderr, "%s%p%s%s%s%s\n", "AC_DATA ", (void *)ad->account,
 			", AC_ACTIVE FALSE, AC_ENABLED TRUE, AC_TITLE ",
 			account_get_title(ad->account), ", AC_TYPE ",
 			account_get_type(ad->account));
