@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2012 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Desktop Mailer */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#define _AccountFolder _MailerFolder
+#define _AccountMessage _MailerMessage
 #include "../src/account/imap4.c"
 
 
@@ -35,7 +37,7 @@ static int _imap4_status(char const * progname, char const * title,
 /* helpers */
 static void _helper_event(Account * account, AccountEvent * event);
 static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
-		Folder * parent, FolderType type, char const * Name);
+		Folder * parent, FolderType type, char const * name);
 static Message * _helper_message_new(Account * account, Folder * folder,
 		AccountMessage * message);
 
@@ -144,7 +146,7 @@ static void _helper_event(Account * account, AccountEvent * event)
 
 /* helper_folder_new */
 static Folder * _helper_folder_new(Account * account, AccountFolder * folder,
-		Folder * parent, FolderType type, char const * Name)
+		Folder * parent, FolderType type, char const * name)
 {
 	static AccountFolder af;
 
