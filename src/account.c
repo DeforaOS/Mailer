@@ -127,7 +127,6 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 	account->type = string_new(type);
 	if(title != NULL)
 		account->title = string_new(title);
-	account->store = store;
 	account->plugin = plugin_new(LIBDIR, PACKAGE, "account", type);
 	account->definition = (account->plugin != NULL)
 		? plugin_lookup(account->plugin, "account_plugin") : NULL;
@@ -442,8 +441,9 @@ void account_store(Account * account, GtkTreeStore * store)
 	GtkTreeIter iter;
 	GtkTreePath * path;
 
-	if(account->row != NULL)
+	if(account->store != NULL)
 		return;
+	account->store = store;
 	theme = gtk_icon_theme_get_default();
 	pixbuf = gtk_icon_theme_load_icon(theme, "mailer-accounts", 16, 0,
 			NULL);
