@@ -431,6 +431,9 @@ int account_start(Account * account)
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, account->title);
 #endif
+	if(account->account == NULL
+			&& account_init(account) != 0)
+		return -1;
 	if(account->definition->start == NULL)
 		return 0;
 	return account->definition->start(account->account);
