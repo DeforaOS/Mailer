@@ -464,7 +464,7 @@ static gboolean _account_get_iter(Account * account, GtkTreeIter * iter)
 {
 	GtkTreePath * path;
 
-	if(account->row == FALSE || (path = gtk_tree_row_reference_get_path(
+	if(account->row == NULL || (path = gtk_tree_row_reference_get_path(
 					account->row)) == NULL)
 		return FALSE;
 	return gtk_tree_model_get_iter(GTK_TREE_MODEL(account->store), iter,
