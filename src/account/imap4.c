@@ -566,8 +566,7 @@ static int _context_fetch(IMAP4 * imap4, char const * answer)
 	IMAP4Command * cmd = &imap4->queue[0];
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%p, \"%s\")\n", __func__, (void *)folder,
-			answer);
+	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, answer);
 #endif
 	if(cmd->status == I4CS_PARSING)
 	{
