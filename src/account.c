@@ -110,10 +110,6 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 		GtkTreeStore * store)
 {
 	Account * account;
-	GtkTreeIter iter;
-	GtkTreePath * path;
-	GtkIconTheme * theme;
-	GdkPixbuf * pixbuf;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%p, \"%s\", \"%s\", %p)\n", __func__,
@@ -148,18 +144,7 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 		return NULL;
 	}
 	if(store != NULL)
-	{
-		theme = gtk_icon_theme_get_default();
-		pixbuf = gtk_icon_theme_load_icon(theme, "mailer-accounts", 16,
-				0, NULL);
-		gtk_tree_store_append(store, &iter, NULL);
-		gtk_tree_store_set(store, &iter, MFC_ACCOUNT, account, MFC_ICON,
-				pixbuf, MFC_NAME, title, -1);
-		path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), &iter);
-		account->row = gtk_tree_row_reference_new(GTK_TREE_MODEL(store),
-				path);
-		gtk_tree_path_free(path);
-	}
+		account_store(account, store);
 	memcpy(&account->helper, &_account_plugin_helper,
 			sizeof(account->helper));
 	account->helper.account = account;
@@ -446,6 +431,28 @@ void account_stop(Account * account)
 	if(account->definition->stop == NULL)
 		return;
 	account->definition->stop(account->account);
+}
+
+
+/* account_store */
+void account_store(Account * account, GtkTreeStore * store)
+{
+	GtkIconTheme * theme;
+	GdkPixbuf * pixbuf;
+	GtkTreeIter iter;
+	GtkTreePath * path;
+
+	if(account->row != NULL)
+		return;
+	theme = gtk_icon_theme_get_default();
+	pixbuf = gtk_icon_theme_load_icon(theme, "mailer-accounts", 16, 0,
+			NULL);
+	gtk_tree_store_append(store, &iter, NULL);
+	gtk_tree_store_set(store, &iter, MFC_ACCOUNT, account, MFC_ICON, pixbuf,
+			MFC_NAME, account->title, -1);
+	path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), &iter);
+	account->row = gtk_tree_row_reference_new(GTK_TREE_MODEL(store), path);
+	gtk_tree_path_free(path);
 }
 
 
