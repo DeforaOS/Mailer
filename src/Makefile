@@ -3,22 +3,22 @@ TARGETS	= libMailer.a libMailer.so.0.0 libMailer.so.0 libMailer.so compose maile
 PREFIX	= /usr/local
 DESTDIR	=
 LIBDIR	= $(PREFIX)/lib
-CC	?= cc
-CPPFLAGSF?=
-CPPFLAGS?=
+CC	= cc
+CPPFLAGSF=
+CPPFLAGS=
 CFLAGSF	= -W `pkg-config --cflags libDesktop`
 CFLAGS	= -Wall -g -O2 -pedantic
 LDFLAGSF= `pkg-config --libs libDesktop`
 LDFLAGS	= 
-AR	?= ar
-RANLIB	?= ranlib
-CCSHARED?= $(CC) -shared
+AR	= ar
+RANLIB	= ranlib
+CCSHARED= $(CC) -shared
 BINDIR	= $(PREFIX)/bin
 SBINDIR	= $(PREFIX)/sbin
-RM	?= rm -f
-LN	?= ln -f
-MKDIR	?= mkdir -p
-INSTALL	?= install
+RM	= rm -f
+LN	= ln -f
+MKDIR	= mkdir -p
+INSTALL	= install
 
 
 all: subdirs $(TARGETS)

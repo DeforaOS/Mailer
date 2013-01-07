@@ -2,19 +2,19 @@ TARGETS	= mailing-lists.so search.so template.so
 PREFIX	= /usr/local
 DESTDIR	=
 LIBDIR	= $(PREFIX)/lib
-CC	?= cc
+CC	= cc
 CPPFLAGSF= -I ../../include
-CPPFLAGS?=
+CPPFLAGS=
 CFLAGSF	= -W -fPIC `pkg-config --cflags libDesktop`
 CFLAGS	= -Wall -g -O2 -pedantic
 LDFLAGSF= `pkg-config --libs openssl` -lssl `pkg-config --libs libDesktop`
-AR	?= ar
-RANLIB	?= ranlib
-CCSHARED?= $(CC) -shared
-RM	?= rm -f
-LN	?= ln -f
-MKDIR	?= mkdir -p
-INSTALL	?= install
+AR	= ar
+RANLIB	= ranlib
+CCSHARED= $(CC) -shared
+RM	= rm -f
+LN	= ln -f
+MKDIR	= mkdir -p
+INSTALL	= install
 
 
 all: $(TARGETS)

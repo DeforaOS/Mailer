@@ -2,19 +2,19 @@ TARGETS	= imap4.so mbox.so pop3.so nntp.so rss.so
 PREFIX	= /usr/local
 DESTDIR	=
 LIBDIR	= $(PREFIX)/lib
-CC	?= cc
+CC	= cc
 CPPFLAGSF= -I ../../include
-CPPFLAGS?=
+CPPFLAGS=
 CFLAGSF	= -W -fPIC `pkg-config --cflags openssl` `pkg-config --cflags glib-2.0`
 CFLAGS	= -Wall -g -O2 -pedantic
 LDFLAGSF= `pkg-config --libs openssl` -lssl `pkg-config --libs glib-2.0`
-AR	?= ar
-RANLIB	?= ranlib
-CCSHARED?= $(CC) -shared
-RM	?= rm -f
-LN	?= ln -f
-MKDIR	?= mkdir -p
-INSTALL	?= install
+AR	= ar
+RANLIB	= ranlib
+CCSHARED= $(CC) -shared
+RM	= rm -f
+LN	= ln -f
+MKDIR	= mkdir -p
+INSTALL	= install
 
 
 all: $(TARGETS)
