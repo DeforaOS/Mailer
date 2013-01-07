@@ -22,10 +22,12 @@ Mailer.pc: Mailer.pc.in ../config.sh
 clean:
 	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean) || exit; done
 	$(RM) -- $(Mailer.pc_OBJS)
+	./pkgconfig.sh -c -P "$(PREFIX)" -- "Mailer.pc"
 
 distclean:
 	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) distclean) || exit; done
 	$(RM) -- $(Mailer.pc_OBJS)
+	./pkgconfig.sh -c -P "$(PREFIX)" -- "Mailer.pc"
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)

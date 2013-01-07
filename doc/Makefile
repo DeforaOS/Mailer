@@ -40,10 +40,12 @@ mailer.html: mailer.xml
 clean:
 	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean) || exit; done
 	$(RM) -- $(compose.1_OBJS) $(compose.html_OBJS) $(gtkdoc/Mailer.types_OBJS) $(gtkdoc/tmpl.stamp_OBJS) $(gtkdoc/sgml.stamp_OBJS) $(gtkdoc/html.stamp_OBJS) $(mailer.1_OBJS) $(mailer.html_OBJS)
+	./docbook.sh -c -P "$(PREFIX)" -- "mailer.html"
 
 distclean:
 	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) distclean) || exit; done
 	$(RM) -- $(compose.1_OBJS) $(compose.html_OBJS) $(gtkdoc/Mailer.types_OBJS) $(gtkdoc/tmpl.stamp_OBJS) $(gtkdoc/sgml.stamp_OBJS) $(gtkdoc/html.stamp_OBJS) $(mailer.1_OBJS) $(mailer.html_OBJS)
+	./docbook.sh -c -P "$(PREFIX)" -- "mailer.html"
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)

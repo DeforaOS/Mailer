@@ -52,6 +52,7 @@ imap4.o: imap4.c ../src/account/imap4.c
 
 clean:
 	$(RM) -- $(date_OBJS) $(email_OBJS) $(imap4_OBJS) $(tests.log_OBJS)
+	./tests.sh -c -P "$(PREFIX)" -- "tests.log"
 
 distclean: clean
 	$(RM) -- $(TARGETS)
