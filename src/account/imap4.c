@@ -666,8 +666,8 @@ static int _context_fetch_flags(IMAP4 * imap4, char const * answer)
 		char const * name;
 		MailerMessageFlag flag;
 	} flags[] = {
-		{ "Answered",	MMF_ANSWERED	},
-		{ "Draft",	MMF_DRAFT	}
+		{ "\\Answered",	MMF_ANSWERED	},
+		{ "\\Draft",	MMF_DRAFT	}
 	};
 
 	/* skip spaces */
@@ -683,14 +683,24 @@ static int _context_fetch_flags(IMAP4 * imap4, char const * answer)
 		return -1;
 	for(i++; answer[i] != '\0' && answer[i] != ')';)
 	{
-		if(answer[i++] != '\\')
-			return -1;
-		for(j = i; isalpha((unsigned char)answer[j]); j++);
+		for(j = i; isalpha((unsigned char)answer[j])
+				|| answer[j] == '\\' || answer[j] == '$'; j++);
+		/* give up if there is no flag */
+		if(j == i)
+		{
+			for(; answer[i] != '\0' && answer[i] != ')'; i++);
+			break;
+		}
 		/* apply the flag */
 		for(k = 0; k < sizeof(flags) / sizeof(*flags); k++)
 			if(strncmp(&answer[i], flags[k].name, j - i) == 0)
+			{
+				/* FIXME make sure message != NULL */
+				if(message == NULL)
+					continue;
 				helper->message_set_flag(message->message,
 						flags[k].flag);
+			}
 		/* skip spaces */
 		for(i = j; answer[i] == ' '; i++);
 	}
