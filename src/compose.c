@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2006-2012 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2006-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Desktop Mailer */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -495,6 +495,7 @@ Compose * compose_new_open(Config * config, Message * message)
 
 	if((compose = compose_new(config)) == NULL)
 		return NULL;
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(compose->view), FALSE);
 	/* FIXME really implement */
 	return compose;
 }
