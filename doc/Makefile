@@ -11,7 +11,7 @@ INSTALL	= install
 all: subdirs $(TARGETS)
 
 subdirs:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE)) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
 compose.1: compose.xml
 	./docbook.sh -P "$(PREFIX)" -- "compose.1"
@@ -38,18 +38,18 @@ mailer.html: mailer.xml
 	./docbook.sh -P "$(PREFIX)" -- "mailer.html"
 
 clean:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
 	$(RM) -- $(compose.1_OBJS) $(compose.html_OBJS) $(gtkdoc/Mailer.types_OBJS) $(gtkdoc/tmpl.stamp_OBJS) $(gtkdoc/sgml.stamp_OBJS) $(gtkdoc/html.stamp_OBJS) $(mailer.1_OBJS) $(mailer.html_OBJS)
 	./docbook.sh -c -P "$(PREFIX)" -- "mailer.html"
 
 distclean:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) distclean) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) distclean) || exit; done
 	$(RM) -- $(compose.1_OBJS) $(compose.html_OBJS) $(gtkdoc/Mailer.types_OBJS) $(gtkdoc/tmpl.stamp_OBJS) $(gtkdoc/sgml.stamp_OBJS) $(gtkdoc/html.stamp_OBJS) $(mailer.1_OBJS) $(mailer.html_OBJS)
 	./docbook.sh -c -P "$(PREFIX)" -- "mailer.html"
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) install) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "compose.1"
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "compose.html"
 	./gtkdoc.sh -P "$(DESTDIR)$(PREFIX)" -i -- "gtkdoc/html.stamp"
@@ -57,7 +57,7 @@ install: $(TARGETS)
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "mailer.html"
 
 uninstall:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) uninstall) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "compose.1"
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "compose.html"
 	./gtkdoc.sh -P "$(DESTDIR)$(PREFIX)" -u -- "gtkdoc/html.stamp"

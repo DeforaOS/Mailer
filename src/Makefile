@@ -24,7 +24,7 @@ INSTALL	= install
 all: subdirs $(TARGETS)
 
 subdirs:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE)) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
 libMailer_OBJS = account.o callbacks.o compose.o folder.o helper.o mailer.o message.o
 libMailer_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) -fPIC
@@ -81,16 +81,16 @@ main.o: main.c mailer.h ../config.h
 	$(CC) -D PREFIX=\"$(PREFIX)\" $(mailer_CFLAGS) -c main.c
 
 clean:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
 	$(RM) -- $(libMailer_OBJS) $(compose_OBJS) $(mailer_OBJS)
 
 distclean:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) distclean) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) distclean) || exit; done
 	$(RM) -- $(libMailer_OBJS) $(compose_OBJS) $(mailer_OBJS)
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) install) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 0644 -- libMailer.a $(DESTDIR)$(LIBDIR)/libMailer.a
 	$(INSTALL) -m 0755 -- libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0.0
@@ -102,7 +102,7 @@ install: $(TARGETS)
 	$(INSTALL) -m 0755 -- mailer $(DESTDIR)$(BINDIR)/mailer
 
 uninstall:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) uninstall) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
 	$(RM) -- $(DESTDIR)$(LIBDIR)/libMailer.a
 	$(RM) -- $(DESTDIR)$(LIBDIR)/libMailer.so.0.0
 	$(RM) -- $(DESTDIR)$(LIBDIR)/libMailer.so.0
