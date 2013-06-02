@@ -261,6 +261,7 @@ Compose * compose_new(Config * config)
 	group = gtk_accel_group_new();
 	compose->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(compose->window), group);
+	g_object_unref(group);
 #ifndef EMBEDDED
 	gtk_window_set_default_size(GTK_WINDOW(compose->window), 512, 384);
 #else
