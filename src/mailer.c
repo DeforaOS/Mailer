@@ -392,6 +392,7 @@ Mailer * mailer_new(void)
 	group = gtk_accel_group_new();
 	mailer->fo_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(mailer->fo_window), group);
+	g_object_unref(group);
 #ifndef EMBEDDED
 	gtk_window_set_default_size(GTK_WINDOW(mailer->fo_window), 800, 600);
 	gtk_window_set_title(GTK_WINDOW(mailer->fo_window), PACKAGE);
@@ -471,6 +472,7 @@ Mailer * mailer_new(void)
 	group = gtk_accel_group_new();
 	mailer->he_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(mailer->he_window), group);
+	g_object_unref(group);
 	gtk_window_set_default_size(GTK_WINDOW(mailer->he_window), 200, 300);
 # if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(mailer->he_window), "mailer");
@@ -501,6 +503,7 @@ Mailer * mailer_new(void)
 	group = gtk_accel_group_new();
 	mailer->bo_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(mailer->bo_window), group);
+	g_object_unref(group);
 	gtk_window_set_default_size(GTK_WINDOW(mailer->bo_window), 200, 300);
 # if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(mailer->bo_window), "mailer");
@@ -538,6 +541,7 @@ Mailer * mailer_new(void)
 	group = gtk_accel_group_new();
 	mailer->pl_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(mailer->pl_window), group);
+	g_object_unref(group);
 	gtk_window_set_default_size(GTK_WINDOW(mailer->pl_window), 200, 300);
 # if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(mailer->pl_window), "mailer");
