@@ -13,13 +13,13 @@ distclean: clean
 
 install:
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps
-	$(INSTALL) -m 0644 -- mailer.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer.png
+	$(INSTALL) -m 0644 mailer.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer.png
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps
-	$(INSTALL) -m 0644 -- mailer-inbox.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer-inbox.png
+	$(INSTALL) -m 0644 mailer-inbox.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer-inbox.png
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps
-	$(INSTALL) -m 0644 -- mailer-outbox.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer-outbox.png
+	$(INSTALL) -m 0644 mailer-outbox.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer-outbox.png
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps
-	$(INSTALL) -m 0644 -- mailer-sent.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer-sent.png
+	$(INSTALL) -m 0644 mailer-sent.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer-sent.png
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/mailer.png

@@ -34,7 +34,7 @@ install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	./pkgconfig.sh -P "$(DESTDIR)$(PREFIX)" -i -- "Mailer.pc"
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 -- mailer.desktop $(DESTDIR)$(PREFIX)/share/applications/mailer.desktop
+	$(INSTALL) -m 0644 mailer.desktop $(DESTDIR)$(PREFIX)/share/applications/mailer.desktop
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done

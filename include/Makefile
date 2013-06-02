@@ -22,7 +22,7 @@ distclean:
 install:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop
-	$(INSTALL) -m 0644 -- Mailer.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer.h
+	$(INSTALL) -m 0644 Mailer.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer.h
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done

@@ -57,9 +57,9 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/plugins
-	$(INSTALL) -m 0644 -- mailing-lists.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/mailing-lists.so
+	$(INSTALL) -m 0644 mailing-lists.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/mailing-lists.so
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/plugins
-	$(INSTALL) -m 0644 -- search.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/search.so
+	$(INSTALL) -m 0644 search.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/search.so
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(LIBDIR)/Mailer/plugins/mailing-lists.so

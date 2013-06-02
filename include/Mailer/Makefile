@@ -15,19 +15,19 @@ distclean: clean
 
 install:
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- account.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/account.h
+	$(INSTALL) -m 0644 account.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/account.h
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- folder.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/folder.h
+	$(INSTALL) -m 0644 folder.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/folder.h
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- helper.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/helper.h
+	$(INSTALL) -m 0644 helper.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/helper.h
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- mailer.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/mailer.h
+	$(INSTALL) -m 0644 mailer.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/mailer.h
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- message.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/message.h
+	$(INSTALL) -m 0644 message.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/message.h
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- plugin.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/plugin.h
+	$(INSTALL) -m 0644 plugin.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/plugin.h
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/Desktop/Mailer
-	$(INSTALL) -m 0644 -- transport.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/transport.h
+	$(INSTALL) -m 0644 transport.h $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/transport.h
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(PREFIX)/include/Desktop/Mailer/account.h

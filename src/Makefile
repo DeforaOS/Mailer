@@ -92,14 +92,14 @@ distclean:
 install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(LIBDIR)
-	$(INSTALL) -m 0644 -- libMailer.a $(DESTDIR)$(LIBDIR)/libMailer.a
-	$(INSTALL) -m 0755 -- libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0.0
+	$(INSTALL) -m 0644 libMailer.a $(DESTDIR)$(LIBDIR)/libMailer.a
+	$(INSTALL) -m 0755 libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0.0
 	$(LN) -s -- libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0
 	$(LN) -s -- libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- compose $(DESTDIR)$(BINDIR)/compose
+	$(INSTALL) -m 0755 compose $(DESTDIR)$(BINDIR)/compose
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- mailer $(DESTDIR)$(BINDIR)/mailer
+	$(INSTALL) -m 0755 mailer $(DESTDIR)$(BINDIR)/mailer
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
