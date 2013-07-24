@@ -204,6 +204,15 @@ Account
 @Returns: 
 
 
+<!-- ##### FUNCTION message_set_flag ##### -->
+<para>
+
+</para>
+
+@message: 
+@flag: 
+
+
 <!-- ##### USER_FUNCTION message_set_header ##### -->
 <para>
 
@@ -223,5 +232,22 @@ Account
 @folder: 
 @message: 
 @Returns: 
+
+
+<!-- ##### USER_FUNCTION start ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION stop ##### -->
+<para>
+
+</para>
+
+@plugin: 
 
 
