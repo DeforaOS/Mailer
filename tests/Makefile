@@ -1,4 +1,4 @@
-TARGETS	= date email imap4 tests.log
+TARGETS	= date email imap4 plugins tests.log
 PREFIX	= /usr/local
 DESTDIR	=
 BINDIR	= $(PREFIX)/bin
@@ -38,7 +38,14 @@ imap4_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs glib-2.0 libSystem` `p
 imap4: $(imap4_OBJS)
 	$(CC) -o imap4 $(imap4_OBJS) $(imap4_LDFLAGS)
 
-tests.log: date email imap4
+plugins_OBJS = plugins.o
+plugins_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags gtk+-2.0`
+plugins_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs gtk+-2.0`
+
+plugins: $(plugins_OBJS)
+	$(CC) -o plugins $(plugins_OBJS) $(plugins_LDFLAGS)
+
+tests.log: date email imap4 plugins tests.sh
 	./tests.sh -P "$(PREFIX)" -- "tests.log"
 
 date.o: date.c ../src/helper.c
@@ -50,8 +57,11 @@ email.o: email.c ../src/libMailer.a
 imap4.o: imap4.c ../src/account/imap4.c
 	$(CC) $(imap4_CFLAGS) -c imap4.c
 
+plugins.o: plugins.c
+	$(CC) $(plugins_CFLAGS) -c plugins.c
+
 clean:
-	$(RM) -- $(date_OBJS) $(email_OBJS) $(imap4_OBJS) $(tests.log_OBJS)
+	$(RM) -- $(date_OBJS) $(email_OBJS) $(imap4_OBJS) $(plugins_OBJS) $(tests.log_OBJS)
 	./tests.sh -c -P "$(PREFIX)" -- "tests.log"
 
 distclean: clean

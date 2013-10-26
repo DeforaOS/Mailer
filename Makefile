@@ -111,6 +111,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/tests/date.c \
 		$(PACKAGE)-$(VERSION)/tests/email.c \
 		$(PACKAGE)-$(VERSION)/tests/imap4.c \
+		$(PACKAGE)-$(VERSION)/tests/plugins.c \
 		$(PACKAGE)-$(VERSION)/tests/Makefile \
 		$(PACKAGE)-$(VERSION)/tests/tests.sh \
 		$(PACKAGE)-$(VERSION)/tests/project.conf \

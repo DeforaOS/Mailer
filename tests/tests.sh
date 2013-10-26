@@ -54,6 +54,7 @@ FAILED=
 ./date			>> "$target"	|| FAILED="$FAILED date(error $?)"
 ./email			>> "$target"	|| FAILED="$FAILED email(error $?)"
 ./imap4			>> "$target"	|| FAILED="$FAILED imap4(error $?)"
+./plugins		>> "$target"	|| FAILED="$FAILED plugins(error $?)"
 [ -z "$FAILED" ]			&& exit 0
 echo "Failed tests:$FAILED" 1>&2
 exit 2
