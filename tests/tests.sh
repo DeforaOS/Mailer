@@ -15,11 +15,57 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+#variables
+#executables
+DATE="date"
+
+
 #functions
+#fail
+_fail()
+{
+	test="$1"
+
+	shift
+	echo -n "$test:" 1>&2
+	(echo
+	echo "Testing: ./$test" "$@"
+	"./$test" "$@") >> "$target" 2>&1
+	res=$?
+	if [ $res -ne 0 ]; then
+		echo " FAILED (error $res)" 1>&2
+	else
+		echo " PASS" 1>&2
+	fi
+}
+
+
+#test
+_test()
+{
+	test="$1"
+
+	shift
+	echo -n "$test:" 1>&2
+	(echo
+	echo "Testing: ./$test" "$@"
+	"./$test" "$@") >> "$target" 2>&1
+	res=$?
+	if [ $res -ne 0 ]; then
+		echo " FAILED" 1>&2
+		FAILED="$FAILED $test(error $res)"
+		return 2
+	else
+		echo " PASS" 1>&2
+		return 0
+	fi
+}
+
+
 #usage
 _usage()
 {
-	echo "Usage: tests.sh" 1>&2
+	echo "Usage: tests.sh [-c][-P prefix]" 1>&2
 	return 1
 }
 
@@ -49,12 +95,15 @@ target="$1"
 
 [ "$clean" -ne 0 ]			&& exit 0
 
-> "$target"
+$DATE > "$target"
 FAILED=
-./date			>> "$target"	|| FAILED="$FAILED date(error $?)"
-./email			>> "$target"	|| FAILED="$FAILED email(error $?)"
-./imap4			>> "$target"	|| FAILED="$FAILED imap4(error $?)"
-./plugins		>> "$target"	|| FAILED="$FAILED plugins(error $?)"
-[ -z "$FAILED" ]			&& exit 0
-echo "Failed tests:$FAILED" 1>&2
-exit 2
+echo "Performing tests:" 1>&2
+_test "date"
+_test "email"
+_test "imap4"
+echo "Expected failures:" 1>&2
+_fail "plugins"
+if [ -n "$FAILED" ]; then
+	echo "Failed tests:$FAILED" 1>&2
+	exit 2
+fi
