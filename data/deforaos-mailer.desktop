@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Mail client
 Comment=Read and send e-mails and more
+TryExec=mailer
 Exec=mailer
 Icon=mailer
 Type=Application
