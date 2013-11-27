@@ -34,11 +34,11 @@ install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	./pkgconfig.sh -P "$(DESTDIR)$(PREFIX)" -i -- "Mailer.pc"
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 mailer.desktop $(DESTDIR)$(PREFIX)/share/applications/mailer.desktop
+	$(INSTALL) -m 0644 deforaos-mailer.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-mailer.desktop
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
 	./pkgconfig.sh -P "$(DESTDIR)$(PREFIX)" -u -- "Mailer.pc"
-	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/mailer.desktop
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/deforaos-mailer.desktop
 
 .PHONY: all subdirs clean distclean install uninstall
