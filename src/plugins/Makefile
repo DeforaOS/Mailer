@@ -21,7 +21,7 @@ all: $(TARGETS)
 
 mailing-lists_OBJS = mailing-lists.o
 mailing-lists_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
-mailing-lists_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) -L.. -Wl,-rpath,$(PREFIX)/lib -lMailer
+mailing-lists_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) -L.. -Wl,-rpath,$(LIBDIR) -lMailer
 
 mailing-lists.so: $(mailing-lists_OBJS)
 	$(CCSHARED) -o mailing-lists.so $(mailing-lists_OBJS) $(mailing-lists_LDFLAGS)

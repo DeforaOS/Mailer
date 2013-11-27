@@ -41,14 +41,14 @@ libMailer.so.0.0 libMailer.so.0 libMailer.so: $(libMailer_OBJS)
 
 compose_OBJS = compose-main.o
 compose_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
-compose_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl -L. -Wl,-rpath,$(PREFIX)/lib -lMailer
+compose_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl -L. -Wl,-rpath,$(LIBDIR) -lMailer
 
 compose: $(compose_OBJS) libMailer.a
 	$(CC) -o compose $(compose_OBJS) $(compose_LDFLAGS)
 
 mailer_OBJS = main.o
 mailer_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
-mailer_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl -L. -Wl,-rpath,$(PREFIX)/lib -lMailer
+mailer_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl -L. -Wl,-rpath,$(LIBDIR) -lMailer
 
 mailer: $(mailer_OBJS) libMailer.a
 	$(CC) -o mailer $(mailer_OBJS) $(mailer_LDFLAGS)
