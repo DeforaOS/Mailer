@@ -23,3 +23,5 @@ static char const * _authors[] =
 
 static char const * _comments =
 N_("e-mail client for the DeforaOS desktop");
+
+static const char _website[] = "http://www.defora.org/";

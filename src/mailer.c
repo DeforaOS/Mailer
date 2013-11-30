@@ -1674,7 +1674,7 @@ void mailer_show_about(Mailer * mailer, gboolean show)
 	desktop_about_dialog_set_logo_icon_name(dialog, "mailer");
 	desktop_about_dialog_set_translator_credits(dialog,
 			_("translator-credits"));
-	desktop_about_dialog_set_website(dialog, "http://www.defora.org/");
+	desktop_about_dialog_set_website(dialog, _website);
 	gtk_widget_show(dialog);
 }
 
