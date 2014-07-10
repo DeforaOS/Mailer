@@ -16,7 +16,7 @@ subdirs:
 compose.1: compose.xml
 	./docbook.sh -P "$(PREFIX)" -- "compose.1"
 
-compose.html: compose.xml
+compose.html: compose.css.xml compose.xml manual.css.xml
 	./docbook.sh -P "$(PREFIX)" -- "compose.html"
 
 gtkdoc/Mailer.types: ../config.sh
@@ -34,7 +34,7 @@ gtkdoc/html.stamp: gtkdoc/Mailer-docs.xml gtkdoc/sgml.stamp
 mailer.1: mailer.xml
 	./docbook.sh -P "$(PREFIX)" -- "mailer.1"
 
-mailer.html: mailer.xml
+mailer.html: mailer.css.xml mailer.xml manual.css.xml
 	./docbook.sh -P "$(PREFIX)" -- "mailer.html"
 
 clean:

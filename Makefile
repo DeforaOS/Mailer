@@ -49,10 +49,13 @@ dist:
 		$(PACKAGE)-$(VERSION)/data/48x48/mailer-sent.png \
 		$(PACKAGE)-$(VERSION)/data/48x48/project.conf \
 		$(PACKAGE)-$(VERSION)/doc/Makefile \
+		$(PACKAGE)-$(VERSION)/doc/compose.css.xml \
 		$(PACKAGE)-$(VERSION)/doc/compose.xml \
 		$(PACKAGE)-$(VERSION)/doc/docbook.sh \
 		$(PACKAGE)-$(VERSION)/doc/gtkdoc.sh \
+		$(PACKAGE)-$(VERSION)/doc/mailer.css.xml \
 		$(PACKAGE)-$(VERSION)/doc/mailer.xml \
+		$(PACKAGE)-$(VERSION)/doc/manual.css.xml \
 		$(PACKAGE)-$(VERSION)/doc/project.conf \
 		$(PACKAGE)-$(VERSION)/doc/gtkdoc/Makefile \
 		$(PACKAGE)-$(VERSION)/doc/gtkdoc/Mailer-docs.xml \
