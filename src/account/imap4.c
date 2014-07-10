@@ -1540,8 +1540,7 @@ static gboolean _on_watch_can_read_ssl(GIOChannel * source,
 		else if(SSL_get_error(imap4->ssl, cnt) == SSL_ERROR_WANT_READ)
 			/* call SSL_read() again when it can read data */
 			imap4->rd_source = g_io_add_watch(imap4->channel,
-					G_IO_IN, _on_watch_can_read_ssl,
-					imap4);
+					G_IO_IN, _on_watch_can_read_ssl, imap4);
 		else
 		{
 			/* unknown error */
