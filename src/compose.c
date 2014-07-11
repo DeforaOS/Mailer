@@ -127,7 +127,7 @@ static DesktopMenu _menu_file[] =
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Save"), G_CALLBACK(compose_save), GTK_STOCK_SAVE,
 		GDK_CONTROL_MASK, GDK_KEY_S },
-	{ N_("Save _as..."), G_CALLBACK(compose_save_as_dialog),
+	{ N_("Save _As..."), G_CALLBACK(compose_save_as_dialog),
 		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK | GDK_SHIFT_MASK,
 		GDK_KEY_S },
 	{ "", NULL, NULL, 0, 0 },

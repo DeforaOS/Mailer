@@ -182,7 +182,7 @@ static const DesktopMenu _menu_edit[] =
 	{ N_("_Paste"), G_CALLBACK(on_edit_paste), GTK_STOCK_PASTE,
 		GDK_CONTROL_MASK, GDK_KEY_V },
 	{ "", NULL, NULL, 0, 0 },
-	{ N_("Select _all"), G_CALLBACK(on_edit_select_all),
+	{ N_("Select _All"), G_CALLBACK(on_edit_select_all),
 #if GTK_CHECK_VERSION(2, 10, 0)
 		GTK_STOCK_SELECT_ALL,
 #else
@@ -200,12 +200,12 @@ static const DesktopMenu _menu_message[] =
 {
 	{ N_("_Reply"), G_CALLBACK(on_message_reply), "stock_mail-reply", 0,
 		0 },
-	{ N_("Reply to _all"), G_CALLBACK(on_message_reply_to_all),
+	{ N_("Reply to _All"), G_CALLBACK(on_message_reply_to_all),
 		"stock_mail-reply-to-all", 0, 0 },
 	{ N_("_Forward"), G_CALLBACK(on_message_forward), "stock_mail-forward",
 		0, 0 },
 	{ "", NULL, NULL, 0, 0 },
-	{ N_("Save _as..."), G_CALLBACK(on_message_save_as), GTK_STOCK_SAVE_AS,
+	{ N_("Save _As..."), G_CALLBACK(on_message_save_as), GTK_STOCK_SAVE_AS,
 		GDK_CONTROL_MASK, GDK_KEY_S },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Delete"), G_CALLBACK(on_message_delete), GTK_STOCK_DELETE, 0,
