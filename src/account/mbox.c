@@ -436,6 +436,7 @@ static gboolean _folder_idle(gpointer data)
 						&error)) == NULL)
 	{
 		mbox->helper->error(NULL, error->message, 1);
+		g_error_free(error);
 		folder->source = g_timeout_add(mbox->timeout, _folder_idle,
 				folder);
 		return FALSE;
@@ -483,6 +484,7 @@ static gboolean _folder_watch(GIOChannel * source, GIOCondition condition,
 	{
 		case G_IO_STATUS_ERROR:
 			mbox->helper->error(NULL, error->message, 1);
+			g_error_free(error);
 			/* FIXME new timeout 1000 function after invalidating
 			 * mtime */
 			return FALSE;
