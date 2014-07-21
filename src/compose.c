@@ -273,7 +273,11 @@ Compose * compose_new(Config * config)
 #endif
 	g_signal_connect_swapped(G_OBJECT(compose->window), "delete-event",
 			G_CALLBACK(_compose_on_closex), compose);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	vbox = gtk_vbox_new(FALSE, 0);
+#endif
 	/* menubar */
 #ifndef EMBEDDED
 	widget = desktop_menubar_create(_compose_menubar, compose, group);
@@ -303,7 +307,11 @@ Compose * compose_new(Config * config)
 	gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
 	/* paned */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+#else
 	vpaned = gtk_vpaned_new();
+#endif
 	/* headers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
@@ -356,7 +364,11 @@ Compose * compose_new(Config * config)
 	gtk_container_add(GTK_CONTAINER(widget), compose->h_view);
 	gtk_paned_add1(GTK_PANED(vpaned), widget);
 	/* paned */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	vbox2 = gtk_vbox_new(FALSE, 0);
+#endif
 	/* subject */
 	toolbar = gtk_toolbar_new();
 	widget = gtk_label_new(_("Subject: "));
@@ -904,7 +916,11 @@ static int _send_mail(Compose * compose, char * msg, size_t msg_len)
 			GTK_WINDOW(compose->window));
 	g_signal_connect_swapped(G_OBJECT(compose->snd_window), "delete-event",
 			G_CALLBACK(_on_send_closex), compose);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+#else
 	hbox = gtk_hbox_new(FALSE, 0);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new(_("Progress: ")),
 			FALSE, FALSE, 0);
 	compose->snd_progress = gtk_progress_bar_new();
