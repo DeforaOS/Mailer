@@ -503,7 +503,13 @@ static gboolean _folder_watch(GIOChannel * source, GIOCondition condition,
 					folder->message->body_offset,
 					folder->offset
 					- folder->message->body_offset);
-		g_io_channel_close(source);
+		if(g_io_channel_shutdown(source, TRUE, &error)
+				!= G_IO_STATUS_NORMAL && error != NULL)
+		{
+			mbox->helper->error(NULL, error->message, 1);
+			g_error_free(error);
+		}
+		g_io_channel_unref(source);
 		folder->channel = NULL;
 		folder->source = g_timeout_add(mbox->timeout, _folder_idle,
 				folder);
