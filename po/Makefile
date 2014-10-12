@@ -17,6 +17,7 @@ fr.mo: Mailer.pot fr.po
 
 clean:
 	$(RM) -- $(Mailer.pot_OBJS) $(fr.mo_OBJS)
+	./gettext.sh -c -P "$(PREFIX)" -- "Mailer.pot"
 	./gettext.sh -c -P "$(PREFIX)" -- "fr.mo"
 
 distclean: clean
