@@ -1,5 +1,6 @@
 SUBDIRS	= gtkdoc
-TARGETS	= compose.1 compose.html gtkdoc/Mailer.types gtkdoc/tmpl.stamp gtkdoc/sgml.stamp gtkdoc/html.stamp mailer.1 mailer.html
+TARGETS	= $(OBJDIR)compose.1 $(OBJDIR)compose.html $(OBJDIR)gtkdoc/Mailer.types $(OBJDIR)gtkdoc/tmpl.stamp $(OBJDIR)gtkdoc/sgml.stamp $(OBJDIR)gtkdoc/html.stamp $(OBJDIR)mailer.1 $(OBJDIR)mailer.html
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 RM	= rm -f
@@ -13,29 +14,29 @@ all: subdirs $(TARGETS)
 subdirs:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
-compose.1: compose.xml
-	./docbook.sh -P "$(PREFIX)" -- "compose.1"
+$(OBJDIR)compose.1: compose.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)compose.1"
 
-compose.html: compose.css.xml compose.xml manual.css.xml
-	./docbook.sh -P "$(PREFIX)" -- "compose.html"
+$(OBJDIR)compose.html: compose.css.xml compose.xml manual.css.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)compose.html"
 
-gtkdoc/Mailer.types: ../config.sh
-	./gtkdoc.sh -P "$(PREFIX)" -- "gtkdoc/Mailer.types"
+$(OBJDIR)gtkdoc/Mailer.types: ../config.sh
+	./gtkdoc.sh -P "$(PREFIX)" -- "$(OBJDIR)gtkdoc/Mailer.types"
 
-gtkdoc/tmpl.stamp: gtkdoc/Mailer.types
-	./gtkdoc.sh -P "$(PREFIX)" -- "gtkdoc/tmpl.stamp"
+$(OBJDIR)gtkdoc/tmpl.stamp: gtkdoc/Mailer.types
+	./gtkdoc.sh -P "$(PREFIX)" -- "$(OBJDIR)gtkdoc/tmpl.stamp"
 
-gtkdoc/sgml.stamp: gtkdoc/tmpl.stamp
-	./gtkdoc.sh -P "$(PREFIX)" -- "gtkdoc/sgml.stamp"
+$(OBJDIR)gtkdoc/sgml.stamp: gtkdoc/tmpl.stamp
+	./gtkdoc.sh -P "$(PREFIX)" -- "$(OBJDIR)gtkdoc/sgml.stamp"
 
-gtkdoc/html.stamp: gtkdoc/Mailer-docs.xml gtkdoc/sgml.stamp
-	./gtkdoc.sh -P "$(PREFIX)" -- "gtkdoc/html.stamp"
+$(OBJDIR)gtkdoc/html.stamp: gtkdoc/Mailer-docs.xml gtkdoc/sgml.stamp
+	./gtkdoc.sh -P "$(PREFIX)" -- "$(OBJDIR)gtkdoc/html.stamp"
 
-mailer.1: mailer.xml
-	./docbook.sh -P "$(PREFIX)" -- "mailer.1"
+$(OBJDIR)mailer.1: mailer.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)mailer.1"
 
-mailer.html: mailer.css.xml mailer.xml manual.css.xml
-	./docbook.sh -P "$(PREFIX)" -- "mailer.html"
+$(OBJDIR)mailer.html: mailer.css.xml mailer.xml manual.css.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)mailer.html"
 
 clean:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
@@ -64,11 +65,11 @@ distclean:
 
 install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "compose.1"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "compose.html"
-	./gtkdoc.sh -P "$(DESTDIR)$(PREFIX)" -i -- "gtkdoc/html.stamp"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "mailer.1"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "mailer.html"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)compose.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)compose.html"
+	./gtkdoc.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)gtkdoc/html.stamp"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)mailer.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)mailer.html"
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done

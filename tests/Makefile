@@ -1,4 +1,5 @@
-TARGETS	= date email imap4 plugins tests.log
+TARGETS	= $(OBJDIR)date $(OBJDIR)email $(OBJDIR)imap4 $(OBJDIR)plugins $(OBJDIR)tests.log
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 BINDIR	= $(PREFIX)/bin
@@ -17,48 +18,48 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-date_OBJS = date.o
+date_OBJS = $(OBJDIR)date.o
 date_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 date_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
-date: $(date_OBJS)
-	$(CC) -o date $(date_OBJS) $(date_LDFLAGS)
+$(OBJDIR)date: $(date_OBJS)
+	$(CC) -o $(OBJDIR)date $(date_OBJS) $(date_LDFLAGS)
 
-email_OBJS = email.o
+email_OBJS = $(OBJDIR)email.o
 email_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 email_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) -L ../src -Wl,-rpath,../src -lMailer
 
-email: $(email_OBJS)
-	$(CC) -o email $(email_OBJS) $(email_LDFLAGS)
+$(OBJDIR)email: $(email_OBJS)
+	$(CC) -o $(OBJDIR)email $(email_OBJS) $(email_LDFLAGS)
 
-imap4_OBJS = imap4.o
+imap4_OBJS = $(OBJDIR)imap4.o
 imap4_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags glib-2.0 libSystem` `pkg-config --cflags openssl`
 imap4_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs glib-2.0 libSystem` `pkg-config --libs openssl` -lssl
 
-imap4: $(imap4_OBJS)
-	$(CC) -o imap4 $(imap4_OBJS) $(imap4_LDFLAGS)
+$(OBJDIR)imap4: $(imap4_OBJS)
+	$(CC) -o $(OBJDIR)imap4 $(imap4_OBJS) $(imap4_LDFLAGS)
 
-plugins_OBJS = plugins.o
+plugins_OBJS = $(OBJDIR)plugins.o
 plugins_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags gtk+-2.0`
 plugins_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs gtk+-2.0`
 
-plugins: $(plugins_OBJS)
-	$(CC) -o plugins $(plugins_OBJS) $(plugins_LDFLAGS)
+$(OBJDIR)plugins: $(plugins_OBJS)
+	$(CC) -o $(OBJDIR)plugins $(plugins_OBJS) $(plugins_LDFLAGS)
 
-tests.log: date email imap4 plugins tests.sh
-	./tests.sh -P "$(PREFIX)" -- "tests.log"
+$(OBJDIR)tests.log: date email imap4 plugins tests.sh
+	./tests.sh -P "$(PREFIX)" -- "$(OBJDIR)tests.log"
 
-date.o: date.c ../src/helper.c
-	$(CC) $(date_CFLAGS) -c date.c
+$(OBJDIR)date.o: date.c ../src/helper.c
+	$(CC) $(date_CFLAGS) -o $(OBJDIR)date.o -c date.c
 
-email.o: email.c ../src/libMailer.a
-	$(CC) $(email_CFLAGS) -c email.c
+$(OBJDIR)email.o: email.c ../src/libMailer.a
+	$(CC) $(email_CFLAGS) -o $(OBJDIR)email.o -c email.c
 
-imap4.o: imap4.c ../src/account/imap4.c
-	$(CC) $(imap4_CFLAGS) -c imap4.c
+$(OBJDIR)imap4.o: imap4.c ../src/account/imap4.c
+	$(CC) $(imap4_CFLAGS) -o $(OBJDIR)imap4.o -c imap4.c
 
-plugins.o: plugins.c
-	$(CC) $(plugins_CFLAGS) -c plugins.c
+$(OBJDIR)plugins.o: plugins.c
+	$(CC) $(plugins_CFLAGS) -o $(OBJDIR)plugins.o -c plugins.c
 
 clean:
 	$(RM) -- $(date_OBJS) $(email_OBJS) $(imap4_OBJS) $(plugins_OBJS) $(tests.log_OBJS)

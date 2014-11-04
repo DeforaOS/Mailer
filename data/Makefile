@@ -2,7 +2,8 @@ SUBDIRS	= 16x16 24x24 48x48
 MKDIR	= mkdir -m 0755 -p
 INSTALL	= install
 RM	= rm -f
-TARGETS	= Mailer.pc
+TARGETS	= $(OBJDIR)Mailer.pc
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 RM	= rm -f
@@ -16,8 +17,8 @@ all: subdirs $(TARGETS)
 subdirs:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
-Mailer.pc: Mailer.pc.in ../config.sh
-	./pkgconfig.sh -P "$(PREFIX)" -- "Mailer.pc"
+$(OBJDIR)Mailer.pc: Mailer.pc.in ../config.sh
+	./pkgconfig.sh -P "$(PREFIX)" -- "$(OBJDIR)Mailer.pc"
 
 clean:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
@@ -32,7 +33,7 @@ distclean:
 
 install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
-	./pkgconfig.sh -P "$(DESTDIR)$(PREFIX)" -i -- "Mailer.pc"
+	./pkgconfig.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)Mailer.pc"
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
 	$(INSTALL) -m 0644 deforaos-mailer.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-mailer.desktop
 

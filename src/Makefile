@@ -1,5 +1,6 @@
 SUBDIRS	= account
-TARGETS	= libMailer.a libMailer.so.0.0 libMailer.so.0 libMailer.so compose mailer
+TARGETS	= $(OBJDIR)libMailer.a $(OBJDIR)libMailer.so.0.0 libMailer.so.0 libMailer.so $(OBJDIR)compose $(OBJDIR)mailer
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 LIBDIR	= $(PREFIX)/lib
@@ -26,59 +27,59 @@ all: subdirs $(TARGETS)
 subdirs:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
-libMailer_OBJS = account.o callbacks.o compose.o folder.o helper.o mailer.o message.o
+libMailer_OBJS = $(OBJDIR)account.o $(OBJDIR)callbacks.o $(OBJDIR)compose.o $(OBJDIR)folder.o $(OBJDIR)helper.o $(OBJDIR)mailer.o $(OBJDIR)message.o
 libMailer_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) -fPIC
 libMailer_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl
 
-libMailer.a: $(libMailer_OBJS)
-	$(AR) -rc libMailer.a $(libMailer_OBJS)
-	$(RANLIB) libMailer.a
+$(OBJDIR)libMailer.a: $(libMailer_OBJS)
+	$(AR) -rc $(OBJDIR)libMailer.a $(libMailer_OBJS)
+	$(RANLIB) $(OBJDIR)libMailer.a
 
-libMailer.so.0.0 libMailer.so.0 libMailer.so: $(libMailer_OBJS)
-	$(CCSHARED) -o libMailer.so.0.0 -Wl,-soname,libMailer.so.0 $(libMailer_OBJS) $(libMailer_LDFLAGS)
-	$(LN) -s -- libMailer.so.0.0 libMailer.so.0
-	$(LN) -s -- libMailer.so.0.0 libMailer.so
+$(OBJDIR)libMailer.so.0.0 libMailer.so.0 libMailer.so: $(libMailer_OBJS)
+	$(CCSHARED) -o $(OBJDIR)libMailer.so.0.0 -Wl,-soname,libMailer.so.0 $(libMailer_OBJS) $(libMailer_LDFLAGS)
+	$(LN) -s -- libMailer.so.0.0 $(OBJDIR)libMailer.so.0
+	$(LN) -s -- libMailer.so.0.0 $(OBJDIR)libMailer.so
 
-compose_OBJS = compose-main.o
+compose_OBJS = $(OBJDIR)compose-main.o
 compose_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 compose_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl -L. -Wl,-rpath,$(LIBDIR) -lMailer
 
-compose: $(compose_OBJS) libMailer.a
-	$(CC) -o compose $(compose_OBJS) $(compose_LDFLAGS)
+$(OBJDIR)compose: $(compose_OBJS) libMailer.a
+	$(CC) -o $(OBJDIR)compose $(compose_OBJS) $(compose_LDFLAGS)
 
-mailer_OBJS = main.o
+mailer_OBJS = $(OBJDIR)main.o
 mailer_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 mailer_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs openssl` -lssl -L. -Wl,-rpath,$(LIBDIR) -lMailer
 
-mailer: $(mailer_OBJS) libMailer.a
-	$(CC) -o mailer $(mailer_OBJS) $(mailer_LDFLAGS)
+$(OBJDIR)mailer: $(mailer_OBJS) libMailer.a
+	$(CC) -o $(OBJDIR)mailer $(mailer_OBJS) $(mailer_LDFLAGS)
 
-account.o: account.c mailer.h message.h account.h ../config.h
-	$(CC) -D PREFIX=\"$(PREFIX)\" $(libMailer_CFLAGS) -c account.c
+$(OBJDIR)account.o: account.c mailer.h message.h account.h ../config.h
+	$(CC) -D PREFIX=\"$(PREFIX)\" $(libMailer_CFLAGS) -o $(OBJDIR)account.o -c account.c
 
-callbacks.o: callbacks.c account.h callbacks.h compose.h mailer.h message.h gtkassistant.c ../config.h
-	$(CC) $(libMailer_CFLAGS) -c callbacks.c
+$(OBJDIR)callbacks.o: callbacks.c account.h callbacks.h compose.h mailer.h message.h gtkassistant.c ../config.h
+	$(CC) $(libMailer_CFLAGS) -o $(OBJDIR)callbacks.o -c callbacks.c
 
-compose.o: compose.c callbacks.h common.c mailer.h message.h compose.h ../config.h
-	$(CC) $(libMailer_CFLAGS) -c compose.c
+$(OBJDIR)compose.o: compose.c callbacks.h common.c mailer.h message.h compose.h ../config.h
+	$(CC) $(libMailer_CFLAGS) -o $(OBJDIR)compose.o -c compose.c
 
-folder.o: folder.c mailer.h folder.h
-	$(CC) $(libMailer_CFLAGS) -c folder.c
+$(OBJDIR)folder.o: folder.c mailer.h folder.h
+	$(CC) $(libMailer_CFLAGS) -o $(OBJDIR)folder.o -c folder.c
 
-helper.o: helper.c ../include/Mailer/helper.h
-	$(CC) $(libMailer_CFLAGS) -c helper.c
+$(OBJDIR)helper.o: helper.c ../include/Mailer/helper.h
+	$(CC) $(libMailer_CFLAGS) -o $(OBJDIR)helper.o -c helper.c
 
-mailer.o: mailer.c account.h callbacks.h common.c compose.h message.h mailer.h ../config.h
-	$(CC) -D PREFIX=\"$(PREFIX)\" $(libMailer_CFLAGS) -c mailer.c
+$(OBJDIR)mailer.o: mailer.c account.h callbacks.h common.c compose.h message.h mailer.h ../config.h
+	$(CC) -D PREFIX=\"$(PREFIX)\" $(libMailer_CFLAGS) -o $(OBJDIR)mailer.o -c mailer.c
 
-message.o: message.c
-	$(CC) $(libMailer_CFLAGS) -c message.c
+$(OBJDIR)message.o: message.c
+	$(CC) $(libMailer_CFLAGS) -o $(OBJDIR)message.o -c message.c
 
-compose-main.o: compose-main.c compose.h message.h
-	$(CC) $(compose_CFLAGS) -c compose-main.c
+$(OBJDIR)compose-main.o: compose-main.c compose.h message.h
+	$(CC) $(compose_CFLAGS) -o $(OBJDIR)compose-main.o -c compose-main.c
 
-main.o: main.c mailer.h ../config.h
-	$(CC) -D PREFIX=\"$(PREFIX)\" $(mailer_CFLAGS) -c main.c
+$(OBJDIR)main.o: main.c mailer.h ../config.h
+	$(CC) -D PREFIX=\"$(PREFIX)\" $(mailer_CFLAGS) -o $(OBJDIR)main.o -c main.c
 
 clean:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
@@ -92,14 +93,14 @@ distclean:
 install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(LIBDIR)
-	$(INSTALL) -m 0644 libMailer.a $(DESTDIR)$(LIBDIR)/libMailer.a
-	$(INSTALL) -m 0755 libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0.0
+	$(INSTALL) -m 0644 $(OBJDIR)libMailer.a $(DESTDIR)$(LIBDIR)/libMailer.a
+	$(INSTALL) -m 0755 $(OBJDIR)libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0.0
 	$(LN) -s -- libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so.0
 	$(LN) -s -- libMailer.so.0.0 $(DESTDIR)$(LIBDIR)/libMailer.so
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 compose $(DESTDIR)$(BINDIR)/compose
+	$(INSTALL) -m 0755 $(OBJDIR)compose $(DESTDIR)$(BINDIR)/compose
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 mailer $(DESTDIR)$(BINDIR)/mailer
+	$(INSTALL) -m 0755 $(OBJDIR)mailer $(DESTDIR)$(BINDIR)/mailer
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done

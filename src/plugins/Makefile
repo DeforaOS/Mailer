@@ -1,4 +1,5 @@
-TARGETS	= mailing-lists.so search.so template.so
+TARGETS	= $(OBJDIR)mailing-lists.so $(OBJDIR)search.so $(OBJDIR)template.so
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 LIBDIR	= $(PREFIX)/lib
@@ -19,35 +20,35 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-mailing-lists_OBJS = mailing-lists.o
+mailing-lists_OBJS = $(OBJDIR)mailing-lists.o
 mailing-lists_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 mailing-lists_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) -L.. -Wl,-rpath,$(LIBDIR) -lMailer
 
-mailing-lists.so: $(mailing-lists_OBJS)
-	$(CCSHARED) -o mailing-lists.so $(mailing-lists_OBJS) $(mailing-lists_LDFLAGS)
+$(OBJDIR)mailing-lists.so: $(mailing-lists_OBJS)
+	$(CCSHARED) -o $(OBJDIR)mailing-lists.so $(mailing-lists_OBJS) $(mailing-lists_LDFLAGS)
 
-search_OBJS = search.o
+search_OBJS = $(OBJDIR)search.o
 search_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 search_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
-search.so: $(search_OBJS)
-	$(CCSHARED) -o search.so $(search_OBJS) $(search_LDFLAGS)
+$(OBJDIR)search.so: $(search_OBJS)
+	$(CCSHARED) -o $(OBJDIR)search.so $(search_OBJS) $(search_LDFLAGS)
 
-template_OBJS = template.o
+template_OBJS = $(OBJDIR)template.o
 template_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 template_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
-template.so: $(template_OBJS)
-	$(CCSHARED) -o template.so $(template_OBJS) $(template_LDFLAGS)
+$(OBJDIR)template.so: $(template_OBJS)
+	$(CCSHARED) -o $(OBJDIR)template.so $(template_OBJS) $(template_LDFLAGS)
 
-mailing-lists.o: mailing-lists.c ../../include/Mailer.h
-	$(CC) $(mailing-lists_CFLAGS) -c mailing-lists.c
+$(OBJDIR)mailing-lists.o: mailing-lists.c ../../include/Mailer.h
+	$(CC) $(mailing-lists_CFLAGS) -o $(OBJDIR)mailing-lists.o -c mailing-lists.c
 
-search.o: search.c ../../include/Mailer.h
-	$(CC) $(search_CFLAGS) -c search.c
+$(OBJDIR)search.o: search.c ../../include/Mailer.h
+	$(CC) $(search_CFLAGS) -o $(OBJDIR)search.o -c search.c
 
-template.o: template.c ../../include/Mailer.h
-	$(CC) $(template_CFLAGS) -c template.c
+$(OBJDIR)template.o: template.c ../../include/Mailer.h
+	$(CC) $(template_CFLAGS) -o $(OBJDIR)template.o -c template.c
 
 clean:
 	$(RM) -- $(mailing-lists_OBJS) $(search_OBJS) $(template_OBJS)
@@ -57,9 +58,9 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/plugins
-	$(INSTALL) -m 0644 mailing-lists.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/mailing-lists.so
+	$(INSTALL) -m 0644 $(OBJDIR)mailing-lists.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/mailing-lists.so
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/plugins
-	$(INSTALL) -m 0644 search.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/search.so
+	$(INSTALL) -m 0644 $(OBJDIR)search.so $(DESTDIR)$(LIBDIR)/Mailer/plugins/search.so
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(LIBDIR)/Mailer/plugins/mailing-lists.so
