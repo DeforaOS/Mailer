@@ -1,5 +1,5 @@
 SUBDIRS	= account
-TARGETS	= $(OBJDIR)libMailer.a $(OBJDIR)libMailer.so.0.0 libMailer.so.0 libMailer.so $(OBJDIR)compose $(OBJDIR)mailer
+TARGETS	= $(OBJDIR)libMailer.a $(OBJDIR)libMailer.so.0.0 $(OBJDIR)libMailer.so.0 $(OBJDIR)libMailer.so $(OBJDIR)compose $(OBJDIR)mailer
 OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
@@ -35,7 +35,7 @@ $(OBJDIR)libMailer.a: $(libMailer_OBJS)
 	$(AR) -rc $(OBJDIR)libMailer.a $(libMailer_OBJS)
 	$(RANLIB) $(OBJDIR)libMailer.a
 
-$(OBJDIR)libMailer.so.0.0 libMailer.so.0 libMailer.so: $(libMailer_OBJS)
+$(OBJDIR)libMailer.so.0.0 $(OBJDIR)libMailer.so.0 $(OBJDIR)libMailer.so: $(libMailer_OBJS)
 	$(CCSHARED) -o $(OBJDIR)libMailer.so.0.0 -Wl,-soname,libMailer.so.0 $(libMailer_OBJS) $(libMailer_LDFLAGS)
 	$(LN) -s -- libMailer.so.0.0 $(OBJDIR)libMailer.so.0
 	$(LN) -s -- libMailer.so.0.0 $(OBJDIR)libMailer.so

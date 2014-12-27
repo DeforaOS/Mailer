@@ -78,11 +78,11 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/account
-	$(INSTALL) -m 0644 $(OBJDIR)imap4.so $(DESTDIR)$(LIBDIR)/Mailer/account/imap4.so
+	$(INSTALL) -m 0755 $(OBJDIR)imap4.so $(DESTDIR)$(LIBDIR)/Mailer/account/imap4.so
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/account
-	$(INSTALL) -m 0644 $(OBJDIR)mbox.so $(DESTDIR)$(LIBDIR)/Mailer/account/mbox.so
+	$(INSTALL) -m 0755 $(OBJDIR)mbox.so $(DESTDIR)$(LIBDIR)/Mailer/account/mbox.so
 	$(MKDIR) $(DESTDIR)$(LIBDIR)/Mailer/account
-	$(INSTALL) -m 0644 $(OBJDIR)pop3.so $(DESTDIR)$(LIBDIR)/Mailer/account/pop3.so
+	$(INSTALL) -m 0755 $(OBJDIR)pop3.so $(DESTDIR)$(LIBDIR)/Mailer/account/pop3.so
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(LIBDIR)/Mailer/account/imap4.so
