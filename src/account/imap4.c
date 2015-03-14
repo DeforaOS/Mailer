@@ -201,7 +201,7 @@ static int _imap4_refresh(IMAP4 * imap4, AccountFolder * folder,
 static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 		char const * command);
 static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
-		struct sockaddr_in * sa);
+		struct addrinfo ** ai);
 static int _imap4_parse(IMAP4 * imap4);
 
 /* events */
@@ -441,18 +441,19 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 
 /* imap4_lookup */
 static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
-		struct sockaddr_in * sa)
+		struct addrinfo ** ai)
 {
-	struct hostent * he;
+	struct addrinfo hints;
+	int res;
 
 	if(hostname == NULL)
 		return -error_set_code(1, "%s", strerror(errno));
-	if((he = gethostbyname(hostname)) == NULL)
-		return -error_set_code(1, "%s", hstrerror(h_errno));
-	memset(sa, 0, sizeof(*sa));
-	sa->sin_family = AF_INET;
-	sa->sin_port = htons(port);
-	sa->sin_addr.s_addr = *((uint32_t*)he->h_addr_list[0]);
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	if((res = getaddrinfo(hostname, NULL, &hints, ai)) != 0)
+		return -error_set_code(1, "%s", gai_strerror(res));
 	return 0;
 }
 
@@ -1201,7 +1202,8 @@ static gboolean _on_connect(gpointer data)
 	char const * hostname;
 	char const * p;
 	uint16_t port;
-	struct sockaddr_in sa;
+	struct addrinfo * ai;
+	struct sockaddr_in * sa;
 	int res;
 	char buf[128];
 
@@ -1219,13 +1221,13 @@ static gboolean _on_connect(gpointer data)
 		return FALSE;
 	port = (unsigned long)p;
 	/* lookup the address */
-	if(_imap4_lookup(imap4, hostname, port, &sa) != 0)
+	if(_imap4_lookup(imap4, hostname, port, &ai) != 0)
 	{
 		helper->error(helper->account, error_get(), 1);
 		return FALSE;
 	}
 	/* create the socket */
-	if((imap4->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	if((imap4->fd = socket(ai->ai_family, ai->ai_socktype, 0)) == -1)
 	{
 		helper->error(helper->account, strerror(errno), 1);
 		_imap4_stop(imap4);
@@ -1237,11 +1239,17 @@ static gboolean _on_connect(gpointer data)
 		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
-			inet_ntoa(sa.sin_addr), port);
+	if(ai->ai_family == AF_INET)
+	{
+		sa = (struct sockaddr_in *)ai->ai_addr;
+		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
+				inet_ntoa(sa->sin_addr), port);
+	}
+	else
+		snprintf(buf, sizeof(buf), "Connecting to %s", hostname);
 	_imap4_event_status(imap4, AS_CONNECTING, buf);
 	/* connect to the remote host */
-	if((connect(imap4->fd, (struct sockaddr *)&sa, sizeof(sa)) != 0
+	if((connect(imap4->fd, ai->ai_addr, ai->ai_addrlen) != 0
 				&& errno != EINPROGRESS)
 			|| _connect_channel(imap4) != 0)
 	{
@@ -1249,10 +1257,12 @@ static gboolean _on_connect(gpointer data)
 				strerror(errno));
 		helper->error(helper->account, buf, 1);
 		_imap4_stop(imap4);
+		freeaddrinfo(ai);
 		return FALSE;
 	}
 	imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
 			_on_watch_can_connect, imap4);
+	freeaddrinfo(ai);
 	return FALSE;
 }
 
@@ -1303,7 +1313,8 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	socklen_t s = sizeof(res);
 	char const * hostname = imap4->config[I4CV_HOSTNAME].value;
 	uint16_t port = (unsigned long)imap4->config[I4CV_PORT].value;
-	struct sockaddr_in sa;
+	struct addrinfo * ai;
+	struct sockaddr_in * sa;
 	SSL_CTX * ssl_ctx;
 	char buf[128];
 
@@ -1322,11 +1333,19 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		return FALSE;
 	}
 	/* XXX remember the address instead */
-	if(_imap4_lookup(imap4, hostname, port, &sa) == 0)
+	if(_imap4_lookup(imap4, hostname, port, &ai) == 0)
 	{
-		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
-				hostname, inet_ntoa(sa.sin_addr), port);
+		if(ai->ai_family == AF_INET)
+		{
+			sa = (struct sockaddr_in *)ai->ai_addr;
+			snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
+					hostname, inet_ntoa(sa->sin_addr),
+					port);
+		}
+		else
+			snprintf(buf, sizeof(buf), "Connected to %s", hostname);
 		_imap4_event_status(imap4, AS_CONNECTED, buf);
+		freeaddrinfo(ai);
 	}
 	imap4->wr_source = 0;
 	/* setup SSL */
