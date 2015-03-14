@@ -30,7 +30,6 @@
 #include <limits.h>
 #include <ctype.h>
 #include <errno.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <openssl/err.h>
@@ -38,6 +37,7 @@
 #include <glib.h>
 #include <System.h>
 #include "Mailer/account.h"
+#include "common.c"
 
 
 /* IMAP4 */
@@ -200,8 +200,6 @@ static int _imap4_refresh(IMAP4 * imap4, AccountFolder * folder,
 /* useful */
 static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 		char const * command);
-static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
-		struct addrinfo ** ai);
 static int _imap4_parse(IMAP4 * imap4);
 
 /* events */
@@ -436,25 +434,6 @@ static IMAP4Command * _imap4_command(IMAP4 * imap4, IMAP4Context context,
 				: _on_watch_can_write, imap4);
 	}
 	return p;
-}
-
-
-/* imap4_lookup */
-static int _imap4_lookup(IMAP4 * imap4, char const * hostname, uint16_t port,
-		struct addrinfo ** ai)
-{
-	struct addrinfo hints;
-	int res;
-
-	if(hostname == NULL)
-		return -error_set_code(1, "%s", strerror(errno));
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	if((res = getaddrinfo(hostname, NULL, &hints, ai)) != 0)
-		return -error_set_code(1, "%s", gai_strerror(res));
-	return 0;
 }
 
 
@@ -1221,7 +1200,7 @@ static gboolean _on_connect(gpointer data)
 		return FALSE;
 	port = (unsigned long)p;
 	/* lookup the address */
-	if(_imap4_lookup(imap4, hostname, port, &ai) != 0)
+	if(_common_lookup(hostname, port, &ai) != 0)
 	{
 		helper->error(helper->account, error_get(), 1);
 		return FALSE;
@@ -1333,7 +1312,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		return FALSE;
 	}
 	/* XXX remember the address instead */
-	if(_imap4_lookup(imap4, hostname, port, &ai) == 0)
+	if(_common_lookup(hostname, port, &ai) == 0)
 	{
 		if(ai->ai_family == AF_INET)
 		{

@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <openssl/err.h>
@@ -35,6 +34,7 @@
 #include <glib.h>
 #include <System.h>
 #include "Mailer/account.h"
+#include "common.c"
 
 
 /* POP3 */
@@ -160,8 +160,6 @@ static int _pop3_refresh(POP3 * pop3, AccountFolder * folder,
 /* useful */
 static POP3Command * _pop3_command(POP3 * pop3, POP3Context context,
 		char const * command);
-static int _pop3_lookup(POP3 * pop3, char const * hostname, uint16_t port,
-		struct addrinfo ** ai);
 static int _pop3_parse(POP3 * pop3);
 
 /* events */
@@ -371,25 +369,6 @@ static POP3Command * _pop3_command(POP3 * pop3, POP3Context context,
 				: _on_watch_can_write, pop3);
 	}
 	return p;
-}
-
-
-/* pop3_lookup */
-static int _pop3_lookup(POP3 * pop3, char const * hostname, uint16_t port,
-		struct addrinfo ** ai)
-{
-	struct addrinfo hints;
-	int res;
-
-	if(hostname == NULL)
-		return -error_set_code(1, "%s", strerror(errno));
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	if((res = getaddrinfo(hostname, NULL, &hints, ai)) != 0)
-		return -error_set_code(1, "%s", gai_strerror(res));
-	return 0;
 }
 
 
@@ -681,7 +660,7 @@ static gboolean _on_connect(gpointer data)
 		return FALSE;
 	port = (unsigned long)p;
 	/* lookup the address */
-	if(_pop3_lookup(pop3, hostname, port, &ai) != 0)
+	if(_common_lookup(hostname, port, &ai) != 0)
 	{
 		helper->error(helper->account, error_get(), 1);
 		return FALSE;
@@ -791,7 +770,7 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		return FALSE;
 	}
 	/* XXX remember the address instead */
-	if(_pop3_lookup(pop3, hostname, port, &ai) == 0)
+	if(_common_lookup(hostname, port, &ai) == 0)
 	{
 		if(ai->ai_family == AF_INET)
 		{

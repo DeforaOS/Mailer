@@ -55,13 +55,13 @@ rss_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 $(OBJDIR)rss.so: $(rss_OBJS)
 	$(CCSHARED) -o $(OBJDIR)rss.so $(rss_OBJS) $(rss_LDFLAGS)
 
-$(OBJDIR)imap4.o: imap4.c ../../include/Mailer.h
+$(OBJDIR)imap4.o: imap4.c ../../include/Mailer.h common.c
 	$(CC) $(imap4_CFLAGS) `pkg-config --cflags libSystem` -o $(OBJDIR)imap4.o -c imap4.c
 
 $(OBJDIR)mbox.o: mbox.c ../../include/Mailer.h
 	$(CC) $(mbox_CFLAGS) -o $(OBJDIR)mbox.o -c mbox.c
 
-$(OBJDIR)pop3.o: pop3.c ../../include/Mailer.h
+$(OBJDIR)pop3.o: pop3.c ../../include/Mailer.h common.c
 	$(CC) $(pop3_CFLAGS) `pkg-config --cflags libSystem` -o $(OBJDIR)pop3.o -c pop3.c
 
 $(OBJDIR)nntp.o: nntp.c ../../include/Mailer.h
