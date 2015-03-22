@@ -36,12 +36,18 @@
 #ifndef LOCALEDIR
 # define LOCALEDIR	DATADIR "/locale"
 #endif
+#ifndef PROGNAME
+# define PROGNAME	"compose"
+#endif
 
 
 /* private */
 /* prototypes */
 static Compose * _compose(Config * config, char const * subject,
 		int toc, char * tov[]);
+
+static int _error(char const * message, int ret);
+static int _usage(void);
 
 
 /* functions */
@@ -88,10 +94,19 @@ static Config * _compose_config(void)
 }
 
 
+/* error */
+static int _error(char const * message, int ret)
+{
+	fputs(PROGNAME, stderr);
+	perror(message);
+	return ret;
+}
+
+
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: compose [-s subject] address...\n"), stderr);
+	fprintf(stderr, _("Usage: %s [-s subject] address...\n"), PROGNAME);
 	return 1;
 }
 

@@ -35,13 +35,32 @@
 #ifndef LOCALEDIR
 # define LOCALEDIR	DATADIR "/locale"
 #endif
+#ifndef PROGNAME
+# define PROGNAME	"mailer"
+#endif
+
+
+/* Mailer */
+/* private */
+/* prototypes */
+static int _error(char const * message, int ret);
+static int _usage(void);
 
 
 /* functions */
+/* error */
+static int _error(char const * message, int ret)
+{
+	fputs(PROGNAME, stderr);
+	perror(message);
+	return ret;
+}
+
+
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: mailer\n"), stderr);
+	fprintf(stderr, _("Usage: %s\n"), PROGNAME);
 	return 1;
 }
 
