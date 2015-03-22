@@ -48,7 +48,7 @@ static void _template_refresh(Template * template, MailerFolder * folder,
 MailerPluginDefinition plugin =
 {
 	"Template",
-	NULL,
+	"applications-development",
 	NULL,
 	_template_init,
 	_template_destroy,
