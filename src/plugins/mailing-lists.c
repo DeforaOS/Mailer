@@ -54,7 +54,7 @@ static void _ml_refresh(MailingLists * ml, MailerFolder * folder,
 MailerPluginDefinition plugin =
 {
 	"Mailing-lists",
-	NULL,
+	"mail-reply-all",
 	"Mailing-lists management",
 	_ml_init,
 	_ml_destroy,
