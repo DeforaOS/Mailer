@@ -101,8 +101,8 @@ echo "Performing tests:" 1>&2
 _test "date"
 _test "email"
 _test "imap4"
+_test "plugins"
 echo "Expected failures:" 1>&2
-_fail "plugins"
 if [ -n "$FAILED" ]; then
 	echo "Failed tests:$FAILED" 1>&2
 	exit 2
