@@ -49,7 +49,7 @@ MailerPluginDefinition plugin =
 {
 	"Template",
 	"applications-development",
-	NULL,
+	"Template plug-in description",
 	_template_init,
 	_template_destroy,
 	_template_get_widget,
