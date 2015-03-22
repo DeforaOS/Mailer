@@ -773,7 +773,8 @@ int compose_error(Compose * compose, char const * message, int ret)
 	GtkWidget * dialog;
 
 	if(compose == NULL)
-		return error_set_print("mailer", ret, "%s", message);
+		return error_set_print(compose->standalone
+				? "compose" : "mailer", ret, "%s", message);
 	dialog = gtk_message_dialog_new(GTK_WINDOW(compose->window),
 			GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
@@ -862,7 +863,7 @@ void compose_select_all(Compose * compose)
 static char * _send_headers(Compose * compose);
 static char * _send_body(GtkWidget * view);
 static int _send_mail(Compose * compose, char * msg, size_t msg_len);
-static int _mail_child(int fd[2]);
+static int _mail_child(Compose * compose, int fd[2]);
 static gboolean _on_send_closex(gpointer data);
 static gboolean _on_send_write(GIOChannel * source, GIOCondition condition,
 		gpointer data);
@@ -906,7 +907,7 @@ static int _send_mail(Compose * compose, char * msg, size_t msg_len)
 	if(pipe(fd) != 0 || (compose->pid = fork()) == -1)
 		return compose_error(compose, strerror(errno), 1);
 	if(compose->pid == 0)
-		return _mail_child(fd);
+		return _mail_child(compose, fd);
 	if(close(fd[0]) != 0 || fcntl(fd[1], F_SETFL, O_NONBLOCK) == -1)
 		compose_error(compose, strerror(errno), 0);
 	compose->snd_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -944,10 +945,10 @@ static int _send_mail(Compose * compose, char * msg, size_t msg_len)
 	return 0;
 }
 
-static int _mail_child(int fd[2])
+static int _mail_child(Compose * compose, int fd[2])
 {
 	if(close(fd[1]) != 0 || close(0) != 0 || dup2(fd[0], 0) == -1)
-		perror("mailer");
+		perror(compose->standalone ? "compose" : "mailer");
 	else
 	{
 		execl(SENDMAIL, "sendmail", "-bm", "-t", NULL);
