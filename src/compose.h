@@ -47,7 +47,7 @@ void compose_set_text(Compose * compose, char const * text);
 void compose_add_field(Compose * compose, char const * field,
 		char const * value);
 
-void compose_append_signature(Compose * compose);
+int compose_append_signature(Compose * compose);
 void compose_append_text(Compose * compose, char const * text);
 
 void compose_attach_dialog(Compose * compose);

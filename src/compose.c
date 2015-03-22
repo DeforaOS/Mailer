@@ -643,7 +643,7 @@ void compose_add_field(Compose * compose, char const * field,
 
 
 /* compose_append_signature */
-void compose_append_signature(Compose * compose)
+int compose_append_signature(Compose * compose)
 {
 	const char signature[] = "/.signature";
 	const char prefix[] = "\n-- \n";
@@ -655,14 +655,15 @@ void compose_append_signature(Compose * compose)
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
 	if((filename = string_new_append(homedir, signature, NULL)) == NULL)
-		return;
+		return -1;
 	res = g_file_get_contents(filename, &buf, NULL, NULL);
 	string_delete(filename);
 	if(res != TRUE)
-		return;
+		return -1;
 	compose_append_text(compose, prefix);
 	compose_append_text(compose, buf);
 	g_free(buf);
+	return 0;
 }
 
 
