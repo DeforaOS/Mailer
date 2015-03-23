@@ -15,7 +15,7 @@ Compiling Mailer
 
 Mailer depends on the following components:
 
- * Gtk+ 2
+ * Gtk+ 2 or 3
  * OpenSSL
  * DeforaOS libDesktop
 
