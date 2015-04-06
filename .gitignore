@@ -1,0 +1,10 @@
+Makefile
+/config.h
+/config.sh
+*~
+*.a
+*.dll
+*.dylib
+*.o
+*.so
+*.so.*
