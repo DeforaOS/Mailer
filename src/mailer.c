@@ -406,7 +406,7 @@ Mailer * mailer_new(void)
 #endif
 	g_signal_connect_swapped(G_OBJECT(mailer->fo_window), "delete-event",
 			G_CALLBACK(on_closex), mailer);
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	/* menubar */
 #ifndef EMBEDDED
 	widget = desktop_menubar_create(_mailer_menubar, mailer, group);
@@ -453,7 +453,7 @@ Mailer * mailer_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
 #endif
 	/* statusbar */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	mailer->st_online = gtk_toggle_button_new();
 	g_signal_connect_swapped(mailer->st_online, "toggled", G_CALLBACK(
 				_mailer_on_online_toggled), mailer);
@@ -480,7 +480,7 @@ Mailer * mailer_new(void)
 	gtk_window_set_title(GTK_WINDOW(mailer->he_window), _("Message list"));
 	g_signal_connect_swapped(G_OBJECT(mailer->he_window), "delete-event",
 			G_CALLBACK(on_headers_closex), mailer);
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(mailer->he_window), vbox);
 	widget = desktop_toolbar_create(_mailer_he_toolbar, mailer, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
@@ -511,7 +511,7 @@ Mailer * mailer_new(void)
 	gtk_window_set_title(GTK_WINDOW(mailer->bo_window), _("Message"));
 	g_signal_connect_swapped(G_OBJECT(mailer->bo_window), "delete-event",
 			G_CALLBACK(on_body_closex), mailer);
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(mailer->bo_window), vbox);
 	widget = desktop_toolbar_create(_mailer_bo_toolbar, mailer, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
@@ -536,7 +536,7 @@ Mailer * mailer_new(void)
 	/* plug-ins */
 #ifndef EMBEDDED
 	mailer->pl_window = mailer->fo_window;
-	mailer->pl_view = gtk_vbox_new(FALSE, 4);
+	mailer->pl_view = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 #else
 	group = gtk_accel_group_new();
 	mailer->pl_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -549,7 +549,7 @@ Mailer * mailer_new(void)
 	gtk_window_set_title(GTK_WINDOW(mailer->pl_window), _("Plug-ins"));
 	g_signal_connect_swapped(G_OBJECT(mailer->pl_window), "delete-event",
 			G_CALLBACK(on_plugins_closex), mailer);
-	mailer->pl_view = gtk_vbox_new(FALSE, 0);
+	mailer->pl_view = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(mailer->pl_window), mailer->pl_view);
 #endif
 	mailer->pl_store = gtk_list_store_new(MPC_COUNT, G_TYPE_STRING,
@@ -572,7 +572,7 @@ Mailer * mailer_new(void)
 			renderer, "text", MPC_NAME_DISPLAY, NULL);
 	gtk_box_pack_start(GTK_BOX(mailer->pl_view), mailer->pl_combo, FALSE,
 			TRUE, 0);
-	mailer->pl_box = gtk_vbox_new(FALSE, 4);
+	mailer->pl_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_box_pack_start(GTK_BOX(mailer->pl_view), mailer->pl_box, TRUE, TRUE,
 			0);
 	gtk_widget_set_no_show_all(mailer->pl_view, TRUE);
@@ -861,14 +861,14 @@ static GtkWidget * _new_headers(Mailer * mailer)
 	widgets[1].widget = &mailer->hdr_from;
 	widgets[2].widget = &mailer->hdr_to;
 	widgets[3].widget = &mailer->hdr_date;
-	vbox = gtk_vbox_new(FALSE, 0);
-	mailer->hdr_vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	mailer->hdr_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 	bold = pango_font_description_new();
 	pango_font_description_set_weight(bold, PANGO_WEIGHT_BOLD);
 	for(i = 0; widgets[i].hdr != NULL; i++)
 	{
-		hbox = gtk_hbox_new(FALSE, 0);
+		hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 		widget = gtk_label_new(_(widgets[i].hdr));
 		gtk_widget_override_font(widget, bold);
 #if GTK_CHECK_VERSION(3, 14, 0)
@@ -1826,9 +1826,9 @@ static void _preferences_accounts(Mailer * mailer, GtkWidget * notebook)
 	Account * ac;
 	GtkTreeIter iter;
 
-	vbox2 = gtk_vbox_new(FALSE, 4);
+	vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 4);
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(widget),
 			GTK_SHADOW_IN);
@@ -1869,7 +1869,7 @@ static void _preferences_accounts(Mailer * mailer, GtkWidget * notebook)
 				renderer, "text", AC_TYPE, NULL));
 	gtk_container_add(GTK_CONTAINER(widget), mailer->pr_accounts);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
-	vbox3 = gtk_vbox_new(FALSE, 4);
+	vbox3 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	/* new account */
 	widget = gtk_button_new_from_stock(GTK_STOCK_NEW);
 	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(
@@ -1913,10 +1913,10 @@ static void _preferences_display(Mailer * mailer, GtkWidget * notebook)
 	GtkWidget * widget;
 
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-	vbox2 = gtk_vbox_new(FALSE, 4);
+	vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 4);
 	/* default font */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Messages font:"));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
@@ -1941,7 +1941,7 @@ static void _preferences_plugins(Mailer * mailer, GtkWidget * notebook)
 	GtkCellRenderer * renderer;
 	GtkTreeViewColumn * column;
 
-	vbox = gtk_vbox_new(FALSE, 4);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(widget),
@@ -2132,7 +2132,7 @@ static void _on_preferences_account_new(gpointer data)
 	gtk_assistant_set_page_type(assistant, page, GTK_ASSISTANT_PAGE_INTRO);
 	gtk_assistant_set_page_complete(assistant, page, FALSE);
 	/* plug-in preferences */
-	page = gtk_vbox_new(FALSE, 0);
+	page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	g_object_ref(page); /* XXX currently leaks memory */
 	ad->settings = page;
 	gtk_widget_show(page);
@@ -2142,7 +2142,7 @@ static void _on_preferences_account_new(gpointer data)
 			GTK_ASSISTANT_PAGE_CONTENT);
 	gtk_assistant_set_page_complete(assistant, page, TRUE);
 	/* confirmation page */
-	page = gtk_vbox_new(FALSE, 0);
+	page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	ad->confirm = page;
 	gtk_widget_show(page);
 	gtk_assistant_append_page(assistant, page);
@@ -2253,10 +2253,10 @@ static GtkWidget * _assistant_account_select(AccountData * ad)
 	GtkWidget * widget;
 	unsigned int i;
 
-	vbox = gtk_vbox_new(FALSE, 4);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	desc = pango_font_description_new();
 	pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 	_account_add_label(hbox, desc, group, _("Account name"));
@@ -2267,21 +2267,21 @@ static GtkWidget * _assistant_account_select(AccountData * ad)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 	/* default identity */
 	/* FIXME seems to not be remembered */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	_account_add_label(hbox, NULL, group, _("Your name"));
 	widget = gtk_entry_new();
 	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
 				_on_entry_changed), &(ad->identity.from));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	_account_add_label(hbox, NULL, group, _("e-mail address"));
 	widget = gtk_entry_new();
 	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
 				_on_entry_changed), &(ad->identity.email));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	_account_add_label(hbox, NULL, group, _("Type of account"));
 #if GTK_CHECK_VERSION(2, 24, 0)
 	widget = gtk_combo_box_text_new();
@@ -2360,7 +2360,7 @@ static GtkWidget * _assistant_account_config(AccountConfig * config)
 	GtkWidget * widget;
 	size_t i;
 
-	vbox = gtk_vbox_new(FALSE, 4);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 	for(i = 0; config != NULL && config[i].type != ACT_NONE; i++)
@@ -2386,7 +2386,8 @@ static GtkWidget * _assistant_account_config(AccountConfig * config)
 				widget = _update_boolean(&config[i]);
 				break;
 			case ACT_SEPARATOR:
-				widget = gtk_hseparator_new();
+				widget = gtk_separator_new(
+						GTK_ORIENTATION_HORIZONTAL);
 				break;
 			default: /* should not happen */
 				assert(0);
@@ -2403,7 +2404,7 @@ static GtkWidget * _update_string(AccountConfig * config,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_entry_new();
 	if(config->value != NULL)
@@ -2420,7 +2421,7 @@ static GtkWidget * _update_password(AccountConfig * config,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_entry_new();
 	gtk_entry_set_visibility(GTK_ENTRY(widget), FALSE);
@@ -2440,7 +2441,7 @@ static GtkWidget * _update_file(AccountConfig * config,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_file_chooser_button_new(_("Choose file"),
 			GTK_FILE_CHOOSER_ACTION_OPEN);
@@ -2487,7 +2488,7 @@ static GtkWidget * _update_uint16(AccountConfig * config,
 	uint16_t u16 = (intptr_t)(config->value);
 	gdouble value = u16;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_spin_button_new_with_range(0, 65535, 1);
 	gtk_spin_button_set_digits(GTK_SPIN_BUTTON(widget), 0);
@@ -2549,7 +2550,7 @@ static GtkWidget * _account_display(Account * account)
 	unsigned int i;
 
 	config = account_get_config(account);
-	vbox = gtk_vbox_new(FALSE, 4);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 	p.name = NULL;
@@ -2583,7 +2584,8 @@ static GtkWidget * _account_display(Account * account)
 						group);
 				break;
 			case ACT_SEPARATOR:
-				widget = gtk_hseparator_new();
+				widget = gtk_separator_new(
+						GTK_ORIENTATION_HORIZONTAL);
 				break;
 			default: /* should not happen */
 				assert(0);
@@ -2602,7 +2604,7 @@ static GtkWidget * _display_string(AccountConfig * config,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_label_new(config->value);
 #if GTK_CHECK_VERSION(3, 14, 0)
@@ -2626,7 +2628,7 @@ static GtkWidget * _display_password(AccountConfig * config,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_label_new(_("hidden"));
 	desc = pango_font_description_new();
@@ -2649,7 +2651,7 @@ static GtkWidget * _display_uint16(AccountConfig * config,
 	char buf[6];
 	uint16_t u16 = (intptr_t)config->value;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	snprintf(buf, sizeof(buf), "%hu", u16);
 	widget = gtk_label_new(buf);
@@ -2668,7 +2670,7 @@ static GtkWidget * _display_boolean(AccountConfig * config,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_label_new(config->value != 0 ? _("Yes") : _("No"));
 #if GTK_CHECK_VERSION(3, 14, 0)
@@ -2783,10 +2785,10 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	notebook = gtk_notebook_new();
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 	/* account tab */
-	vbox = gtk_vbox_new(FALSE, 4);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	/* account name */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Account name:"));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
@@ -2801,10 +2803,10 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* identity */
 	frame = gtk_frame_new(_("Identity:"));
-	vbox2 = gtk_vbox_new(FALSE, 4);
+	vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 4);
 	/* identity: name */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Name:"));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
@@ -2819,7 +2821,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	/* identity: address */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Address:"));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
@@ -2834,7 +2836,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	/* identity: organization */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Organization:"));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
