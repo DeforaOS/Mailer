@@ -33,6 +33,19 @@
 #define N_(string) (string)
 #include "common.c"
 
+#ifndef PROGNAME_COMPOSE
+# define PROGNAME_COMPOSE	"compose"
+#endif
+#ifndef PROGNAME
+# define PROGNAME		PROGNAME_COMPOSE
+#endif
+#ifndef PROGNAME_MAILER
+# define PROGNAME_MAILER	"mailer"
+#endif
+#ifndef PROGNAME_SENDMAIL
+# define PROGNAME_SENDMAIL	"sendmail"
+#endif
+
 
 /* Compose */
 /* private */
@@ -95,7 +108,7 @@ typedef enum _ComposeHeaderColumn
 
 
 /* constants */
-#define SENDMAIL "/usr/sbin/sendmail"
+#define SENDMAIL_PATH		"/usr/sbin/" PROGNAME_SENDMAIL
 
 
 /* prototypes */
@@ -783,7 +796,8 @@ int compose_error(Compose * compose, char const * message, int ret)
 
 	if(compose == NULL)
 		return error_set_print(compose->standalone
-				? "compose" : "mailer", ret, "%s", message);
+				? PROGNAME : PROGNAME_MAILER,
+				ret, "%s", message);
 	dialog = gtk_message_dialog_new(GTK_WINDOW(compose->window),
 			GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
@@ -957,11 +971,11 @@ static int _send_mail(Compose * compose, char * msg, size_t msg_len)
 static int _mail_child(Compose * compose, int fd[2])
 {
 	if(close(fd[1]) != 0 || close(0) != 0 || dup2(fd[0], 0) == -1)
-		perror(compose->standalone ? "compose" : "mailer");
+		perror(compose->standalone ? PROGNAME : PROGNAME_MAILER);
 	else
 	{
-		execl(SENDMAIL, "sendmail", "-bm", "-t", NULL);
-		perror(SENDMAIL);
+		execl(SENDMAIL_PATH, PROGNAME_SENDMAIL, "-bm", "-t", NULL);
+		perror(SENDMAIL_PATH);
 	}
 	exit(2);
 	return 0;
@@ -1258,7 +1272,7 @@ static void _compose_on_contents(gpointer data)
 	Compose * compose = data;
 
 	desktop_help_contents(PACKAGE, compose->standalone
-			? "compose" : "mailer");
+			? PROGNAME : PROGNAME_MAILER);
 }
 
 
