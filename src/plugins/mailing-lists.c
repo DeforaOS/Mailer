@@ -80,7 +80,11 @@ static MailerPlugin * _ml_init(MailerPluginHelper * helper)
 	pango_font_description_set_weight(bold, PANGO_WEIGHT_BOLD);
 	ml->vbox = gtk_vbox_new(FALSE, 4);
 	ml->folder = gtk_label_new("");
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_widget_override_font(ml->folder, bold);
+#else
 	gtk_widget_modify_font(ml->folder, bold);
+#endif
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(ml->folder, "halign", GTK_ALIGN_START, NULL);
 #else
