@@ -690,6 +690,7 @@ void compose_append_text(Compose * compose, char const * text)
 /* compose_attach_dialog */
 void compose_attach_dialog(Compose * compose)
 {
+	const int iconsize = 48;
 	GtkWidget * dialog;
 	GSList * filenames = NULL;
 	GSList * p;
@@ -716,10 +717,10 @@ void compose_attach_dialog(Compose * compose)
 	{
 		pixbuf = NULL;
 		if((type = mime_type(compose->mime, p->data)) != NULL)
-			mime_icons(compose->mime, type, 48, &pixbuf, -1);
+			mime_icons(compose->mime, type, iconsize, &pixbuf, -1);
 		if(pixbuf == NULL)
 			pixbuf = gtk_icon_theme_load_icon(theme, GTK_STOCK_FILE,
-					48, 0, NULL);
+					iconsize, 0, NULL);
 		gtk_list_store_append(compose->a_store, &iter);
 		gtk_list_store_set(compose->a_store, &iter, CAC_FILENAME,
 				p->data, CAC_BASENAME, basename(p->data),
