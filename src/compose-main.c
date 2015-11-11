@@ -84,7 +84,7 @@ static Config * _compose_config(void)
 		return NULL;
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
-	if((filename = string_new_append(homedir, "/" MAILER_CONFIG_FILE))
+	if((filename = string_new_append(homedir, "/" MAILER_CONFIG_FILE, NULL))
 			!= NULL)
 	{
 		config_load(config, filename);
