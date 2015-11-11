@@ -871,14 +871,24 @@ static GtkWidget * _new_headers(Mailer * mailer)
 		hbox = gtk_hbox_new(FALSE, 0);
 		widget = gtk_label_new(_(widgets[i].hdr));
 		gtk_widget_override_font(widget, bold);
+#if GTK_CHECK_VERSION(3, 14, 0)
+		g_object_set(widget, "halign", GTK_ALIGN_END,
+				"valign", GTK_ALIGN_START, NULL);
+#else
 		gtk_misc_set_alignment(GTK_MISC(widget), 1.0, 0.0);
+#endif
 		gtk_size_group_add_widget(GTK_SIZE_GROUP(group), widget);
 		gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 		widget = gtk_label_new("");
 		*(widgets[i].widget) = widget;
 		gtk_label_set_ellipsize(GTK_LABEL(widget),
 				PANGO_ELLIPSIZE_MIDDLE);
+#if GTK_CHECK_VERSION(3, 14, 0)
+		g_object_set(widget, "halign", GTK_ALIGN_START,
+				"valign", GTK_ALIGN_START, NULL);
+#else
 		gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.0);
+#endif
 		gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 		gtk_box_pack_start(GTK_BOX(mailer->hdr_vbox), hbox, FALSE,
 				FALSE, 0);
@@ -1908,7 +1918,11 @@ static void _preferences_display(Mailer * mailer, GtkWidget * notebook)
 	/* default font */
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Messages font:"));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	mailer->pr_messages_font = gtk_font_button_new();
 	widget = mailer->pr_messages_font;
@@ -2320,7 +2334,11 @@ static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 		gtk_widget_override_font(label, desc);
 	if(group != NULL)
 		gtk_size_group_add_widget(group, label);
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(label, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
 }
 
@@ -2587,7 +2605,11 @@ static GtkWidget * _display_string(AccountConfig * config,
 	hbox = gtk_hbox_new(FALSE, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_label_new(config->value);
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
 }
@@ -2610,7 +2632,11 @@ static GtkWidget * _display_password(AccountConfig * config,
 	desc = pango_font_description_new();
 	pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
 	gtk_widget_override_font(widget, desc);
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
 }
@@ -2627,7 +2653,11 @@ static GtkWidget * _display_uint16(AccountConfig * config,
 	_account_add_label(hbox, desc, group, config->title);
 	snprintf(buf, sizeof(buf), "%hu", u16);
 	widget = gtk_label_new(buf);
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
 }
@@ -2641,7 +2671,11 @@ static GtkWidget * _display_boolean(AccountConfig * config,
 	hbox = gtk_hbox_new(FALSE, 0);
 	_account_add_label(hbox, desc, group, config->title);
 	widget = gtk_label_new(config->value != 0 ? _("Yes") : _("No"));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
 }
@@ -2754,7 +2788,11 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	/* account name */
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Account name:"));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
@@ -2768,7 +2806,11 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	/* identity: name */
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Name:"));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
@@ -2779,7 +2821,11 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	/* identity: address */
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Address:"));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
@@ -2790,7 +2836,11 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	/* identity: organization */
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Organization:"));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();

@@ -290,7 +290,11 @@ Compose * compose_new(Config * config)
 	sizegroup = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 	toolbar = gtk_toolbar_new();
 	widget = gtk_label_new(_("From: "));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.1, 0.5);
+#endif
 	gtk_widget_set_size_request(widget, 80, -1);
 	gtk_size_group_add_widget(sizegroup, widget);
 	toolitem = gtk_tool_item_new();
@@ -372,7 +376,11 @@ Compose * compose_new(Config * config)
 	/* subject */
 	toolbar = gtk_toolbar_new();
 	widget = gtk_label_new(_("Subject: "));
+#if GTK_CHECK_VERSION(3, 14, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.1, 0.5);
+#endif
 	gtk_size_group_add_widget(sizegroup, widget);
 	toolitem = gtk_tool_item_new();
 	gtk_container_add(GTK_CONTAINER(toolitem), widget);
