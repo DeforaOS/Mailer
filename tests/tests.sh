@@ -16,6 +16,7 @@
 
 
 #variables
+[ -n "$OBJDIR" ] || OBJDIR="./"
 PROGNAME="tests.sh"
 #executables
 DATE="date"
@@ -25,19 +26,27 @@ DATE="date"
 #fail
 _fail()
 {
+	_run "$@"
+}
+
+
+#run
+_run()
+{
 	test="$1"
 
 	shift
 	echo -n "$test:" 1>&2
 	(echo
-	echo "Testing: ./$test" "$@"
-	"./$test" "$@") >> "$target" 2>&1
+	echo "Testing: $OBJDIR$test" "$@"
+	LD_LIBRARY_PATH="$OBJDIR../src" "$OBJDIR$test" "$@") >> "$target" 2>&1
 	res=$?
 	if [ $res -ne 0 ]; then
-		echo " FAILED (error $res)" 1>&2
+		echo " FAIL (error $res)" 1>&2
 	else
 		echo " PASS" 1>&2
 	fi
+	return $res
 }
 
 
@@ -46,27 +55,16 @@ _test()
 {
 	test="$1"
 
-	shift
-	echo -n "$test:" 1>&2
-	(echo
-	echo "Testing: ./$test" "$@"
-	"./$test" "$@") >> "$target" 2>&1
+	_run "$@"
 	res=$?
-	if [ $res -ne 0 ]; then
-		echo " FAILED" 1>&2
-		FAILED="$FAILED $test(error $res)"
-		return 2
-	else
-		echo " PASS" 1>&2
-		return 0
-	fi
+	[ $res -eq 0 ] || FAILED="$FAILED $test(error $res)"
 }
 
 
 #usage
 _usage()
 {
-	echo "Usage: $PROGNAME [-c][-P prefix]" 1>&2
+	echo "Usage: $PROGNAME [-c][-P prefix] target" 1>&2
 	return 1
 }
 
@@ -79,7 +77,7 @@ while getopts "cP:" name; do
 			clean=1
 			;;
 		P)
-			#XXX ignored
+			#XXX ignored for compatibility
 			;;
 		?)
 			_usage
@@ -108,3 +106,4 @@ if [ -n "$FAILED" ]; then
 	echo "Failed tests:$FAILED" 1>&2
 	exit 2
 fi
+echo "All tests completed" 1>&2
