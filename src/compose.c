@@ -975,10 +975,11 @@ static int _mail_child(Compose * compose, int fd[2])
 	else
 	{
 		execl(SENDMAIL_PATH, PROGNAME_SENDMAIL, "-bm", "-t", NULL);
+		fputs(PROGNAME ": ", stderr);
 		perror(SENDMAIL_PATH);
 	}
-	exit(2);
-	return 0;
+	_exit(2);
+	return -1;
 }
 
 static char * _send_headers(Compose * compose)
