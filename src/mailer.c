@@ -870,7 +870,7 @@ static GtkWidget * _new_headers(Mailer * mailer)
 	{
 		hbox = gtk_hbox_new(FALSE, 0);
 		widget = gtk_label_new(_(widgets[i].hdr));
-		gtk_widget_modify_font(widget, bold);
+		gtk_widget_override_font(widget, bold);
 		gtk_misc_set_alignment(GTK_MISC(widget), 1.0, 0.0);
 		gtk_size_group_add_widget(GTK_SIZE_GROUP(group), widget);
 		gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
@@ -915,7 +915,7 @@ static void _idle_config_load(Mailer * mailer)
 	free(filename);
 	value = _mailer_get_font(mailer);
 	font = pango_font_description_from_string(value);
-	gtk_widget_modify_font(mailer->bo_view, font);
+	gtk_widget_override_font(mailer->bo_view, font);
 	pango_font_description_free(font);
 	/* check if we are online */
 	if((p = config_get(mailer->config, NULL, "online")) == NULL
@@ -1412,7 +1412,7 @@ static void _open_selected_source(Mailer * mailer, GtkTreeModel * model,
 	if((p = config_get(mailer->config, NULL, "messages_font")) != NULL)
 	{
 		font = pango_font_description_from_string(p);
-		gtk_widget_modify_font(widget, font);
+		gtk_widget_override_font(widget, font);
 		pango_font_description_free(font);
 	}
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(widget), FALSE);
@@ -2317,7 +2317,7 @@ static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 	snprintf(buf, sizeof(buf), "%s:", text);
 	label = gtk_label_new(buf);
 	if(desc != NULL)
-		gtk_widget_modify_font(label, desc);
+		gtk_widget_override_font(label, desc);
 	if(group != NULL)
 		gtk_size_group_add_widget(group, label);
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
@@ -2609,7 +2609,7 @@ static GtkWidget * _display_password(AccountConfig * config,
 	widget = gtk_label_new(_("hidden"));
 	desc = pango_font_description_new();
 	pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
-	gtk_widget_modify_font(widget, desc);
+	gtk_widget_override_font(widget, desc);
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
@@ -2975,7 +2975,7 @@ static int _preferences_ok_display(Mailer * mailer)
 	config_set(mailer->config, "", "messages_font", p);
 	if(p != NULL)
 		font = pango_font_description_from_string(p);
-	gtk_widget_modify_font(mailer->bo_view, font);
+	gtk_widget_override_font(mailer->bo_view, font);
 	if(font != NULL)
 		pango_font_description_free(font);
 	return 0;

@@ -577,7 +577,7 @@ void compose_set_font(Compose * compose, char const * font)
 	PangoFontDescription * desc;
 
 	desc = pango_font_description_from_string(font);
-	gtk_widget_modify_font(compose->view, desc);
+	gtk_widget_override_font(compose->view, desc);
 	pango_font_description_free(desc);
 }
 
