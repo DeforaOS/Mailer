@@ -662,7 +662,7 @@ static gboolean _on_connect(gpointer data)
 	/* lookup the address */
 	if(_common_lookup(hostname, port, &ai) != 0)
 	{
-		helper->error(helper->account, error_get(), 1);
+		helper->error(helper->account, error_get(NULL), 1);
 		return FALSE;
 	}
 	/* create the socket */

@@ -921,7 +921,7 @@ static void _idle_config_load(Mailer * mailer)
 	if((filename = _mailer_get_config_filename()) == NULL)
 		return;
 	if(config_load(mailer->config, filename) != 0)
-		mailer_error(NULL, error_get(), 1);
+		mailer_error(NULL, error_get(NULL), 1);
 	free(filename);
 	value = _mailer_get_font(mailer);
 	font = pango_font_description_from_string(value);
@@ -1345,17 +1345,17 @@ int mailer_load(Mailer * mailer, char const * plugin)
 	if(_mailer_plugin_is_enabled(mailer, plugin))
 		return 0;
 	if((p = plugin_new(LIBDIR, PACKAGE, "plugins", plugin)) == NULL)
-		return -mailer_error(NULL, error_get(), 1);
+		return -mailer_error(NULL, error_get(NULL), 1);
 	if((mpd = plugin_lookup(p, "plugin")) == NULL)
 	{
 		plugin_delete(p);
-		return -mailer_error(NULL, error_get(), 1);
+		return -mailer_error(NULL, error_get(NULL), 1);
 	}
 	if(mpd->init == NULL || mpd->destroy == NULL
 			|| (mp = mpd->init(&mailer->pl_helper)) == NULL)
 	{
 		plugin_delete(p);
-		return -mailer_error(NULL, error_get(), 1);
+		return -mailer_error(NULL, error_get(NULL), 1);
 	}
 	theme = gtk_icon_theme_get_default();
 	if(mpd->icon != NULL)
@@ -1621,7 +1621,7 @@ gboolean mailer_message_open(Mailer * mailer, char const * filename)
 		return mailer_message_open_dialog(mailer);
 	if((message = message_new_open(mailer, filename)) == NULL)
 	{
-		mailer_error(mailer, error_get(), 1);
+		mailer_error(mailer, error_get(NULL), 1);
 		return FALSE;
 	}
 	compose = compose_new_open(mailer->config, message);
@@ -2219,7 +2219,7 @@ static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 		}
 		if(ad->account == NULL)
 		{
-			mailer_error(ad->mailer, error_get(), 0);
+			mailer_error(ad->mailer, error_get(NULL), 0);
 			gtk_assistant_set_current_page(GTK_ASSISTANT(widget),
 					0);
 			ad->settings = _assistant_account_select(ad);
@@ -3247,7 +3247,7 @@ static int _mailer_config_load_account(Mailer * mailer, char const * name)
 		return -1;
 	if((account = account_new(mailer, type, name, mailer->fo_store))
 			== NULL)
-		return -mailer_error(mailer, error_get(), 1);
+		return -mailer_error(mailer, error_get(NULL), 1);
 	if(account_init(account) != 0
 			|| account_config_load(account, mailer->config) != 0
 			|| mailer_account_add(mailer, account) != 0)
