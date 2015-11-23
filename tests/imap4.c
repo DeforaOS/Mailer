@@ -91,8 +91,8 @@ static int _imap4_flags(char const * progname, char const * title,
 	cmd->data.fetch.message = &message;
 	cmd->data.fetch.id = id;
 	cmd->data.fetch.status = I4FS_FLAGS;
-	memset(&folder, 0, sizeof(&folder));
-	memset(&message, 0, sizeof(&message));
+	memset(&folder, 0, sizeof(folder));
+	memset(&message, 0, sizeof(message));
 	imap4->channel = (GIOChannel *)-1; /* XXX */
 	imap4->queue = cmd;
 	imap4->queue_cnt = 1;
