@@ -30,6 +30,7 @@ static int _common_lookup(char const * hostname, uint16_t port,
 {
 	struct addrinfo hints;
 	int res;
+	char buf[6];
 
 	if(hostname == NULL)
 		return -error_set_code(1, "%s", strerror(errno));
@@ -37,7 +38,9 @@ static int _common_lookup(char const * hostname, uint16_t port,
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
-	if((res = getaddrinfo(hostname, NULL, &hints, ai)) != 0)
+	hints.ai_flags = AI_NUMERICSERV;
+	snprintf(buf, sizeof(buf), "%hu", port);
+	if((res = getaddrinfo(hostname, buf, &hints, ai)) != 0)
 		return -error_set_code(1, "%s", gai_strerror(res));
 	return 0;
 }
