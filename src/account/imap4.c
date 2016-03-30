@@ -149,6 +149,7 @@ typedef struct _AccountPlugin
 	AccountConfig * config;
 
 	struct addrinfo * ai;
+	struct addrinfo * aip;
 	int fd;
 	SSL * ssl;
 	guint source;
@@ -279,6 +280,7 @@ static IMAP4 * _imap4_init(AccountPluginHelper * helper)
 	}
 	memcpy(imap4->config, &_imap4_config, sizeof(_imap4_config));
 	imap4->ai = NULL;
+	imap4->aip = NULL;
 	imap4->fd = -1;
 	return imap4;
 }
@@ -359,6 +361,7 @@ static void _imap4_stop(IMAP4 * imap4)
 	if(imap4->fd >= 0)
 		close(imap4->fd);
 	imap4->fd = -1;
+	imap4->aip = NULL;
 	if(imap4->ai != NULL)
 		freeaddrinfo(imap4->ai);
 	imap4->ai = NULL;
@@ -1177,6 +1180,8 @@ static void _imap4_message_delete(IMAP4 * imap4,
 
 /* callbacks */
 /* on_idle */
+static int _connect_address(IMAP4 * imap4, char const * hostname, uint16_t port,
+		struct addrinfo * ai);
 static int _connect_channel(IMAP4 * imap4);
 
 static gboolean _on_connect(gpointer data)
@@ -1186,9 +1191,6 @@ static gboolean _on_connect(gpointer data)
 	char const * hostname;
 	char const * p;
 	uint16_t port;
-	int res;
-	char buf[128];
-	char * q;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -1209,21 +1211,34 @@ static gboolean _on_connect(gpointer data)
 		helper->error(helper->account, error_get(NULL), 1);
 		return FALSE;
 	}
-	/* create the socket */
-	if((imap4->fd = socket(imap4->ai->ai_family, imap4->ai->ai_socktype,
-					imap4->ai->ai_protocol)) == -1)
-	{
-		helper->error(helper->account, strerror(errno), 1);
+	for(imap4->aip = imap4->ai; imap4->aip != NULL;
+			imap4->aip = imap4->aip->ai_next)
+		if(_connect_address(imap4, hostname, port, imap4->aip) == 0)
+			break;
+	if(imap4->aip == NULL)
 		_imap4_stop(imap4);
-		return FALSE;
-	}
+	return FALSE;
+}
+
+static int _connect_address(IMAP4 * imap4, char const * hostname, uint16_t port,
+		struct addrinfo * ai)
+{
+	AccountPluginHelper * helper = imap4->helper;
+	int res;
+	char * q;
+	char buf[128];
+
+	/* create the socket */
+	if((imap4->fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol))
+			== -1)
+		return -helper->error(helper->account, strerror(errno), 1);
 	if((res = fcntl(imap4->fd, F_GETFL)) >= 0
 			&& fcntl(imap4->fd, F_SETFL, res | O_NONBLOCK) == -1)
 		/* ignore this error */
 		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	if((q = _common_lookup_print(imap4->ai)) != NULL)
+	if((q = _common_lookup_print(ai)) != NULL)
 		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
 				q, port);
 	else
@@ -1231,19 +1246,17 @@ static gboolean _on_connect(gpointer data)
 	free(q);
 	_imap4_event_status(imap4, AS_CONNECTING, buf);
 	/* connect to the remote host */
-	if((connect(imap4->fd, imap4->ai->ai_addr, imap4->ai->ai_addrlen) != 0
+	if((connect(imap4->fd, ai->ai_addr, ai->ai_addrlen) != 0
 				&& errno != EINPROGRESS && errno != EINTR)
 			|| _connect_channel(imap4) != 0)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(errno));
-		helper->error(helper->account, buf, 1);
-		_imap4_stop(imap4);
-		return FALSE;
+		return -helper->error(helper->account, buf, 1);
 	}
 	imap4->wr_source = g_io_add_watch(imap4->channel, G_IO_OUT,
 			_on_watch_can_connect, imap4);
-	return FALSE;
+	return 0;
 }
 
 static int _connect_channel(IMAP4 * imap4)
@@ -1308,16 +1321,19 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
 				strerror(res));
 		helper->error(helper->account, buf, 1);
+		/* FIXME try the next address instead */
 		_imap4_stop(imap4);
 		return FALSE;
 	}
-	if((q = _common_lookup_print(imap4->ai)) != NULL)
+	if(imap4->aip != NULL && (q = _common_lookup_print(imap4->aip)) != NULL)
+	{
 		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)", hostname,
 				q, port);
+		free(q);
+	}
 	else
 		snprintf(buf, sizeof(buf), "Connected to %s", hostname);
 	_imap4_event_status(imap4, AS_CONNECTED, buf);
-	free(q);
 	imap4->wr_source = 0;
 	/* setup SSL */
 	if(imap4->config[I4CV_SSL].value != NULL)
