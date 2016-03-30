@@ -49,6 +49,9 @@
 #ifndef PLUGINDIR
 # define PLUGINDIR	LIBDIR "/Mailer"
 #endif
+#ifndef SYSCONFDIR
+# define SYSCONFDIR	PREFIX "/etc"
+#endif
 
 
 /* Mailer */
@@ -377,7 +380,7 @@ Mailer * mailer_new(void)
 			|| SSL_CTX_set_cipher_list(mailer->ssl_ctx,
 				SSL_DEFAULT_CIPHER_LIST) != 1
 			|| SSL_CTX_load_verify_locations(mailer->ssl_ctx, NULL,
-				"/etc/openssl/certs") != 1)
+				SYSCONFDIR "/openssl/certs") != 1)
 	{
 		mailer_error(NULL, ERR_error_string(ERR_get_error(), buf), 1);
 		if(mailer->ssl_ctx != NULL)
