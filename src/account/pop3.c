@@ -642,9 +642,9 @@ static gboolean _on_connect(gpointer data)
 	char const * p;
 	uint16_t port;
 	struct addrinfo * ai;
-	struct sockaddr_in * sa;
 	int res;
 	char buf[128];
+	char buf2[128];
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -678,12 +678,10 @@ static gboolean _on_connect(gpointer data)
 		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	if(ai->ai_family == AF_INET)
-	{
-		sa = (struct sockaddr_in *)ai->ai_addr;
+	if((p = inet_ntop(ai->ai_family, ai->ai_addr, buf2, sizeof(buf2)))
+			!= NULL)
 		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
-				inet_ntoa(sa->sin_addr), port);
-	}
+				p, port);
 	else
 		snprintf(buf, sizeof(buf), "Connecting to %s", hostname);
 	_pop3_event_status(pop3, AS_CONNECTING, buf);
