@@ -751,9 +751,10 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	char const * hostname = pop3->config[P3CV_HOSTNAME].value;
 	uint16_t port = (unsigned long)pop3->config[P3CV_PORT].value;
 	struct addrinfo * ai;
-	struct sockaddr_in * sa;
 	SSL_CTX * ssl_ctx;
+	char const * p;
 	char buf[128];
+	char buf2[128];
 
 	if(condition != G_IO_OUT || source != pop3->channel)
 		return FALSE; /* should not happen */
@@ -772,13 +773,10 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	/* XXX remember the address instead */
 	if(_common_lookup(hostname, port, &ai) == 0)
 	{
-		if(ai->ai_family == AF_INET)
-		{
-			sa = (struct sockaddr_in *)ai->ai_addr;
+		if((p = inet_ntop(ai->ai_family, ai->ai_addr, buf2,
+						sizeof(buf2))) != NULL)
 			snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
-					hostname, inet_ntoa(sa->sin_addr),
-					port);
-		}
+					hostname, p, port);
 		else
 			snprintf(buf, sizeof(buf), "Connected to %s", hostname);
 		_pop3_event_status(pop3, AS_CONNECTED, buf);
