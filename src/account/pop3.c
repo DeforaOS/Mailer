@@ -688,7 +688,7 @@ static gboolean _on_connect(gpointer data)
 		snprintf(buf, sizeof(buf), "Connecting to %s", hostname);
 	_pop3_event_status(pop3, AS_CONNECTING, buf);
 	/* connect to the remote host */
-	if((connect(pop3->fd, (struct sockaddr *)&sa, sizeof(sa)) != 0
+	if((connect(pop3->fd, ai->ai_addr, ai->ai_addrlen) != 0
 				&& errno != EINPROGRESS)
 			|| _connect_channel(pop3) != 0)
 	{
