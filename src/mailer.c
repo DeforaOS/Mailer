@@ -447,10 +447,10 @@ Mailer * mailer_new(void)
 	mailer->fo_view = _new_folders_view(mailer);
 	gtk_container_add(GTK_CONTAINER(widget), mailer->fo_view);
 #ifndef EMBEDDED
-	hpaned = gtk_hpaned_new();
+	hpaned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_set_position(GTK_PANED(hpaned), 160);
 	gtk_paned_add1(GTK_PANED(hpaned), widget);
-	vpaned = gtk_vpaned_new();
+	vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
 	gtk_paned_set_position(GTK_PANED(vpaned), 160);
 	gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 #else
@@ -582,7 +582,7 @@ Mailer * mailer_new(void)
 	gtk_widget_set_no_show_all(mailer->pl_view, TRUE);
 	gtk_container_set_border_width(GTK_CONTAINER(mailer->pl_view), 4);
 #ifndef EMBEDDED
-	hpaned2 = gtk_hpaned_new();
+	hpaned2 = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_pack1(GTK_PANED(hpaned2), vpaned, TRUE, TRUE);
 	gtk_paned_pack2(GTK_PANED(hpaned2), mailer->pl_view, FALSE, TRUE);
 	gtk_paned_add2(GTK_PANED(hpaned), hpaned2);
