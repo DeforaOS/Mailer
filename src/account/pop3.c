@@ -112,6 +112,7 @@ typedef struct _AccountPlugin
 
 	AccountConfig * config;
 
+	struct addrinfo * ai;
 	int fd;
 	SSL * ssl;
 	guint source;
@@ -228,6 +229,7 @@ static POP3 * _pop3_init(AccountPluginHelper * helper)
 		return NULL;
 	}
 	memcpy(pop3->config, &_pop3_config, sizeof(_pop3_config));
+	pop3->ai = NULL;
 	pop3->fd = -1;
 	pop3->inbox.folder = pop3->helper->folder_new(pop3->helper->account,
 			&pop3->inbox, NULL, FT_INBOX, "Inbox");
@@ -298,6 +300,10 @@ static void _pop3_stop(POP3 * pop3)
 	free(pop3->queue);
 	if(pop3->fd >= 0)
 		close(pop3->fd);
+	pop3->fd = -1;
+	if(pop3->ai != NULL)
+		freeaddrinfo(pop3->ai);
+	pop3->ai = NULL;
 	_pop3_event(pop3, AET_STOPPED);
 }
 
@@ -641,7 +647,6 @@ static gboolean _on_connect(gpointer data)
 	char const * hostname;
 	char const * p;
 	uint16_t port;
-	struct addrinfo * ai;
 	int res;
 	char buf[128];
 	char * q;
@@ -660,14 +665,14 @@ static gboolean _on_connect(gpointer data)
 		return FALSE;
 	port = (unsigned long)p;
 	/* lookup the address */
-	if(_common_lookup(hostname, port, &ai) != 0)
+	if(_common_lookup(hostname, port, &pop3->ai) != 0)
 	{
 		helper->error(helper->account, error_get(NULL), 1);
 		return FALSE;
 	}
 	/* create the socket */
-	if((pop3->fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol))
-			== -1)
+	if((pop3->fd = socket(pop3->ai->ai_family, pop3->ai->ai_socktype,
+					pop3->ai->ai_protocol)) == -1)
 	{
 		helper->error(helper->account, strerror(errno), 1);
 		_pop3_stop(pop3);
@@ -679,7 +684,7 @@ static gboolean _on_connect(gpointer data)
 		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	if((q = _common_lookup_print(ai)) != NULL)
+	if((q = _common_lookup_print(pop3->ai)) != NULL)
 		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
 				q, port);
 	else
@@ -687,7 +692,7 @@ static gboolean _on_connect(gpointer data)
 	free(q);
 	_pop3_event_status(pop3, AS_CONNECTING, buf);
 	/* connect to the remote host */
-	if((connect(pop3->fd, ai->ai_addr, ai->ai_addrlen) != 0
+	if((connect(pop3->fd, pop3->ai->ai_addr, pop3->ai->ai_addrlen) != 0
 				&& errno != EINPROGRESS && errno != EINTR)
 			|| _connect_channel(pop3) != 0)
 	{
@@ -695,12 +700,10 @@ static gboolean _on_connect(gpointer data)
 				strerror(errno));
 		helper->error(helper->account, buf, 1);
 		_pop3_stop(pop3);
-		freeaddrinfo(ai);
 		return FALSE;
 	}
 	pop3->wr_source = g_io_add_watch(pop3->channel, G_IO_OUT,
 			_on_watch_can_connect, pop3);
-	freeaddrinfo(ai);
 	return FALSE;
 }
 
@@ -749,7 +752,6 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	socklen_t s = sizeof(res);
 	char const * hostname = pop3->config[P3CV_HOSTNAME].value;
 	uint16_t port = (unsigned long)pop3->config[P3CV_PORT].value;
-	struct addrinfo * ai;
 	SSL_CTX * ssl_ctx;
 	char buf[128];
 	char * q;
@@ -768,18 +770,13 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 		_pop3_stop(pop3);
 		return FALSE;
 	}
-	/* XXX remember the address instead */
-	if(_common_lookup(hostname, port, &ai) == 0)
-	{
-		if((q = _common_lookup_print(ai)) != NULL)
-			snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
-					hostname, q, port);
-		else
-			snprintf(buf, sizeof(buf), "Connected to %s", hostname);
-		_pop3_event_status(pop3, AS_CONNECTED, buf);
-		free(q);
-		freeaddrinfo(ai);
-	}
+	if((q = _common_lookup_print(pop3->ai)) != NULL)
+		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)", hostname,
+				q, port);
+	else
+		snprintf(buf, sizeof(buf), "Connected to %s", hostname);
+	_pop3_event_status(pop3, AS_CONNECTED, buf);
+	free(q);
 	pop3->wr_source = 0;
 	/* setup SSL */
 	if(pop3->config[P3CV_SSL].value != NULL)
