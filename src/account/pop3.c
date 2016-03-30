@@ -644,7 +644,7 @@ static gboolean _on_connect(gpointer data)
 	struct addrinfo * ai;
 	int res;
 	char buf[128];
-	char buf2[128];
+	char * q;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -679,12 +679,12 @@ static gboolean _on_connect(gpointer data)
 		/* FIXME report properly as a warning instead */
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
-	if((p = inet_ntop(ai->ai_family, ai->ai_addr, buf2, sizeof(buf2)))
-			!= NULL)
+	if((q = _common_lookup_print(ai)) != NULL)
 		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
-				p, port);
+				q, port);
 	else
 		snprintf(buf, sizeof(buf), "Connecting to %s", hostname);
+	free(q);
 	_pop3_event_status(pop3, AS_CONNECTING, buf);
 	/* connect to the remote host */
 	if((connect(pop3->fd, ai->ai_addr, ai->ai_addrlen) != 0
@@ -751,9 +751,8 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	uint16_t port = (unsigned long)pop3->config[P3CV_PORT].value;
 	struct addrinfo * ai;
 	SSL_CTX * ssl_ctx;
-	char const * p;
 	char buf[128];
-	char buf2[128];
+	char * q;
 
 	if(condition != G_IO_OUT || source != pop3->channel)
 		return FALSE; /* should not happen */
@@ -772,13 +771,13 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	/* XXX remember the address instead */
 	if(_common_lookup(hostname, port, &ai) == 0)
 	{
-		if((p = inet_ntop(ai->ai_family, ai->ai_addr, buf2,
-						sizeof(buf2))) != NULL)
+		if((q = _common_lookup_print(ai)) != NULL)
 			snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)",
-					hostname, p, port);
+					hostname, q, port);
 		else
 			snprintf(buf, sizeof(buf), "Connected to %s", hostname);
 		_pop3_event_status(pop3, AS_CONNECTED, buf);
+		free(q);
 		freeaddrinfo(ai);
 	}
 	pop3->wr_source = 0;

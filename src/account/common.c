@@ -15,6 +15,7 @@
 
 
 
+#include <string.h>
 #include <netdb.h>
 
 
@@ -43,4 +44,32 @@ static int _common_lookup(char const * hostname, uint16_t port,
 	if((res = getaddrinfo(hostname, buf, &hints, ai)) != 0)
 		return -error_set_code(1, "%s", gai_strerror(res));
 	return 0;
+}
+
+
+/* common_lookup_print */
+static char * _common_lookup_print(struct addrinfo * ai)
+{
+	char buf[128];
+	struct sockaddr_in * sin;
+	struct sockaddr_in6 * sin6;
+
+	switch(ai->ai_family)
+	{
+		case AF_INET:
+			sin = (struct sockaddr_in *)ai->ai_addr;
+			if(inet_ntop(ai->ai_family, &sin->sin_addr, buf,
+						sizeof(buf)) == NULL)
+				return NULL;
+			break;
+		case AF_INET6:
+			sin6 = (struct sockaddr_in6 *)ai->ai_addr;
+			if(inet_ntop(ai->ai_family, &sin6->sin6_addr, buf,
+						sizeof(buf)) == NULL)
+				return NULL;
+			break;
+		default:
+			return NULL;
+	}
+	return strdup(buf);
 }
