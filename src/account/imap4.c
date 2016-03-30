@@ -1228,7 +1228,7 @@ static gboolean _on_connect(gpointer data)
 	_imap4_event_status(imap4, AS_CONNECTING, buf);
 	/* connect to the remote host */
 	if((connect(imap4->fd, ai->ai_addr, ai->ai_addrlen) != 0
-				&& errno != EINPROGRESS)
+				&& errno != EINPROGRESS && errno != EINTR)
 			|| _connect_channel(imap4) != 0)
 	{
 		snprintf(buf, sizeof(buf), "%s (%s)", "Connection failed",
