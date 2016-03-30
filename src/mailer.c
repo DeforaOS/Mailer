@@ -388,6 +388,7 @@ Mailer * mailer_new(void)
 	else
 		SSL_CTX_set_verify(mailer->ssl_ctx, SSL_VERIFY_PEER, NULL);
 #endif
+	SSL_CTX_set_options(mailer->ssl_ctx, SSL_OP_NO_SSLv2);
 	/* widgets */
 	group = gtk_accel_group_new();
 	mailer->fo_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
