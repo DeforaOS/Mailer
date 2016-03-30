@@ -666,7 +666,8 @@ static gboolean _on_connect(gpointer data)
 		return FALSE;
 	}
 	/* create the socket */
-	if((pop3->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	if((pop3->fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol))
+			== -1)
 	{
 		helper->error(helper->account, strerror(errno), 1);
 		_pop3_stop(pop3);

@@ -1206,7 +1206,8 @@ static gboolean _on_connect(gpointer data)
 		return FALSE;
 	}
 	/* create the socket */
-	if((imap4->fd = socket(ai->ai_family, ai->ai_socktype, 0)) == -1)
+	if((imap4->fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol))
+			== -1)
 	{
 		helper->error(helper->account, strerror(errno), 1);
 		_imap4_stop(imap4);
