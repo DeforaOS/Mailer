@@ -641,7 +641,7 @@ static void _pop3_message_delete(POP3 * pop3,
 
 /* callbacks */
 /* on_idle */
-static int _connect_address(POP3 * pop3, char const * hostname, uint16_t port,
+static int _connect_address(POP3 * pop3, char const * hostname,
 		struct addrinfo * ai);
 static int _connect_channel(POP3 * pop3);
 
@@ -674,14 +674,14 @@ static gboolean _on_connect(gpointer data)
 	}
 	for(pop3->aip = pop3->ai; pop3->aip != NULL;
 			pop3->aip = pop3->aip->ai_next)
-		if(_connect_address(pop3, hostname, port, pop3->aip) == 0)
+		if(_connect_address(pop3, hostname, pop3->aip) == 0)
 			break;
 	if(pop3->aip == NULL)
 		_pop3_stop(pop3);
 	return FALSE;
 }
 
-static int _connect_address(POP3 * pop3, char const * hostname, uint16_t port,
+static int _connect_address(POP3 * pop3, char const * hostname,
 		struct addrinfo * ai)
 {
 	AccountPluginHelper * helper = pop3->helper;
@@ -700,8 +700,8 @@ static int _connect_address(POP3 * pop3, char const * hostname, uint16_t port,
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
 	if((q = _common_lookup_print(ai)) != NULL)
-		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
-				q, port);
+		snprintf(buf, sizeof(buf), "Connecting to %s (%s)", hostname,
+				q);
 	else
 		snprintf(buf, sizeof(buf), "Connecting to %s", hostname);
 	free(q);
@@ -764,7 +764,6 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	int res;
 	socklen_t s = sizeof(res);
 	char const * hostname = pop3->config[P3CV_HOSTNAME].value;
-	uint16_t port = (unsigned long)pop3->config[P3CV_PORT].value;
 	SSL_CTX * ssl_ctx;
 	char buf[128];
 	char * q;
@@ -786,8 +785,8 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	}
 	if(pop3->aip != NULL && (q = _common_lookup_print(pop3->aip)) != NULL)
 	{
-		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)", hostname,
-				q, port);
+		snprintf(buf, sizeof(buf), "Connected to %s (%s)", hostname,
+				q);
 		free(q);
 	}
 	else

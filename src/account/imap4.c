@@ -1180,7 +1180,7 @@ static void _imap4_message_delete(IMAP4 * imap4,
 
 /* callbacks */
 /* on_idle */
-static int _connect_address(IMAP4 * imap4, char const * hostname, uint16_t port,
+static int _connect_address(IMAP4 * imap4, char const * hostname,
 		struct addrinfo * ai);
 static int _connect_channel(IMAP4 * imap4);
 
@@ -1213,14 +1213,14 @@ static gboolean _on_connect(gpointer data)
 	}
 	for(imap4->aip = imap4->ai; imap4->aip != NULL;
 			imap4->aip = imap4->aip->ai_next)
-		if(_connect_address(imap4, hostname, port, imap4->aip) == 0)
+		if(_connect_address(imap4, hostname, imap4->aip) == 0)
 			break;
 	if(imap4->aip == NULL)
 		_imap4_stop(imap4);
 	return FALSE;
 }
 
-static int _connect_address(IMAP4 * imap4, char const * hostname, uint16_t port,
+static int _connect_address(IMAP4 * imap4, char const * hostname,
 		struct addrinfo * ai)
 {
 	AccountPluginHelper * helper = imap4->helper;
@@ -1239,8 +1239,8 @@ static int _connect_address(IMAP4 * imap4, char const * hostname, uint16_t port,
 		helper->error(NULL, strerror(errno), 1);
 	/* report the current status */
 	if((q = _common_lookup_print(ai)) != NULL)
-		snprintf(buf, sizeof(buf), "Connecting to %s (%s:%u)", hostname,
-				q, port);
+		snprintf(buf, sizeof(buf), "Connecting to %s (%s)", hostname,
+				q);
 	else
 		snprintf(buf, sizeof(buf), "Connecting to %s", hostname);
 	free(q);
@@ -1305,7 +1305,6 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	int res;
 	socklen_t s = sizeof(res);
 	char const * hostname = imap4->config[I4CV_HOSTNAME].value;
-	uint16_t port = (unsigned long)imap4->config[I4CV_PORT].value;
 	SSL_CTX * ssl_ctx;
 	char buf[128];
 	char * q;
@@ -1327,8 +1326,8 @@ static gboolean _on_watch_can_connect(GIOChannel * source,
 	}
 	if(imap4->aip != NULL && (q = _common_lookup_print(imap4->aip)) != NULL)
 	{
-		snprintf(buf, sizeof(buf), "Connected to %s (%s:%u)", hostname,
-				q, port);
+		snprintf(buf, sizeof(buf), "Connected to %s (%s)", hostname,
+				q);
 		free(q);
 	}
 	else

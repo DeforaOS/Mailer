@@ -51,6 +51,7 @@ static int _common_lookup(char const * hostname, uint16_t port,
 static char * _common_lookup_print(struct addrinfo * ai)
 {
 	char buf[128];
+	char buf2[128];
 	struct sockaddr_in * sin;
 	struct sockaddr_in6 * sin6;
 
@@ -61,15 +62,19 @@ static char * _common_lookup_print(struct addrinfo * ai)
 			if(inet_ntop(ai->ai_family, &sin->sin_addr, buf,
 						sizeof(buf)) == NULL)
 				return NULL;
+			snprintf(buf2, sizeof(buf2), "%s:%hu", buf,
+					ntohs(sin->sin_port));
 			break;
 		case AF_INET6:
 			sin6 = (struct sockaddr_in6 *)ai->ai_addr;
 			if(inet_ntop(ai->ai_family, &sin6->sin6_addr, buf,
 						sizeof(buf)) == NULL)
 				return NULL;
+			snprintf(buf2, sizeof(buf2), "[%s]:%hu", buf,
+					ntohs(sin6->sin6_port));
 			break;
 		default:
 			return NULL;
 	}
-	return strdup(buf);
+	return strdup(buf2);
 }
