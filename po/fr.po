@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mailer 0.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-05 19:36+0200\n"
+"POT-Creation-Date: 2016-04-05 20:30+0200\n"
 "PO-Revision-Date: 2010-10-02 23:25+0200\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -472,7 +472,7 @@ msgstr "Adresse :"
 msgid "Organization:"
 msgstr "Organisation :"
 
-#: ../src/mailer.c:2876
+#: ../src/mailer.c:2876 ../src/mailer.c:3359
 msgid "Account"
 msgstr "Compte"
 
