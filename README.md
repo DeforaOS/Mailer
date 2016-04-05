@@ -7,7 +7,7 @@ About Mailer
 Mailer is a mail client application for the DeforaOS desktop.
 
 Mailer is part of the DeforaOS Project, and distributed under the terms of the
-GNU General Public License, version 3 (GPLv3).
+BSD License (3-clause).
 
 
 Compiling Mailer
@@ -18,8 +18,10 @@ Mailer depends on the following components:
  * Gtk+ 2 or 3
  * OpenSSL
  * DeforaOS libDesktop
+ * DocBook-XSL (for the manual pages)
+ * gtk-doc (for the API documentation)
 
-With GCC, this should then be enough:
+With GCC, this should then be enough to compile Mailer:
 
     $ make
 
@@ -33,7 +35,7 @@ Documentation
 
 Manual pages for each of the executables installed are available in the `doc`
 folder. They are written in the DocBook-XML format, and need libxslt and
-DocBook-XML to be installed to be converted to either HTML or man file format.
+DocBook-XSL to be installed to be converted to either HTML or man file format.
 
 Likewise, the API reference for libMailer (accounts and plug-ins) is available
 in the `doc/gtkdoc` folder, and is generated using gtk-doc.
