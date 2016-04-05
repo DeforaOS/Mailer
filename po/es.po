@@ -1,0 +1,507 @@
+# $Id$
+# Copyright (c) 2016 Pierre Pronchery <khorben@defora.org>
+# This file is distributed under the same license as the Mailer package.
+# Pierre Pronchery <khorben@defora.org>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Mailer 0.1.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-04-05 19:36+0200\n"
+"PO-Revision-Date: 2016-04-05 19:43+0200\n"
+"Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../src/common.c:40
+msgid "e-mail client for the DeforaOS desktop"
+msgstr ""
+
+#: ../src/compose.c:153
+msgid "_New message"
+msgstr ""
+
+#: ../src/compose.c:156
+msgid "_Save"
+msgstr "_Guardar"
+
+#: ../src/compose.c:158 ../src/mailer.c:226
+msgid "Save _As..."
+msgstr "Guardar _como..."
+
+#: ../src/compose.c:162 ../src/mailer.c:185
+msgid "_Print"
+msgstr "_Imprimir"
+
+#: ../src/compose.c:163 ../src/mailer.c:186
+msgid "Print pre_view"
+msgstr ""
+
+#: ../src/compose.c:166
+msgid "S_end"
+msgstr ""
+
+#: ../src/compose.c:169
+msgid "_Close"
+msgstr "_Cerrar"
+
+#: ../src/compose.c:176
+msgid "_Undo"
+msgstr ""
+
+#: ../src/compose.c:177
+msgid "_Redo"
+msgstr ""
+
+#: ../src/compose.c:179 ../src/mailer.c:196
+msgid "_Cut"
+msgstr "Cor_tar"
+
+#: ../src/compose.c:181
+msgid "_Copy"
+msgstr "_Copiar"
+
+#: ../src/compose.c:183 ../src/mailer.c:200
+msgid "_Paste"
+msgstr "_Pegar"
+
+#: ../src/compose.c:186
+msgid "_Select all"
+msgstr "Seleccionar _todo"
+
+#: ../src/compose.c:194 ../src/mailer.c:210
+msgid "_Unselect all"
+msgstr "_Deseleccionar todo"
+
+#: ../src/compose.c:201
+msgid "Add field"
+msgstr ""
+
+#: ../src/compose.c:208 ../src/mailer.c:239
+msgid "_Contents"
+msgstr ""
+
+#: ../src/compose.c:211 ../src/compose.c:213 ../src/mailer.c:242
+#: ../src/mailer.c:244
+msgid "_About"
+msgstr "Acerca _de"
+
+#: ../src/compose.c:220 ../src/mailer.c:251
+msgid "_File"
+msgstr "_Archivo"
+
+#: ../src/compose.c:221 ../src/mailer.c:252
+msgid "_Edit"
+msgstr "_Editar"
+
+#: ../src/compose.c:222
+msgid "_View"
+msgstr "_Ver"
+
+#: ../src/compose.c:223 ../src/mailer.c:254
+msgid "_Help"
+msgstr "_Ayuda"
+
+#: ../src/compose.c:230
+msgid "Send"
+msgstr ""
+
+#: ../src/compose.c:233
+msgid "Save"
+msgstr "Guardar"
+
+#: ../src/compose.c:235
+msgid "Cut"
+msgstr "Cortar"
+
+#: ../src/compose.c:236
+msgid "Copy"
+msgstr "Copiar"
+
+#: ../src/compose.c:237
+msgid "Paste"
+msgstr "Pegar"
+
+#: ../src/compose.c:239
+msgid "Attach"
+msgstr ""
+
+#: ../src/compose.c:298
+msgid "Compose"
+msgstr ""
+
+#: ../src/compose.c:320
+msgid "From: "
+msgstr ""
+
+#: ../src/compose.c:406
+msgid "Subject: "
+msgstr ""
+
+#: ../src/compose.c:730
+msgid "Attach file..."
+msgstr ""
+
+#: ../src/compose.c:820 ../src/compose.c:824 ../src/mailer.c:1130
+#: ../src/mailer.c:1134
+msgid "Error"
+msgstr "Error"
+
+#: ../src/compose.c:953
+msgid "Sending mail..."
+msgstr ""
+
+#: ../src/compose.c:964
+msgid "Progress: "
+msgstr ""
+
+#: ../src/compose.c:1246 ../src/compose.c:1255
+msgid "Warning"
+msgstr "Aviso"
+
+#: ../src/compose.c:1249
+msgid ""
+"There are unsaved changes.\n"
+"Are you sure you want to close?"
+msgstr ""
+
+#: ../src/compose-main.c:124
+#, c-format
+msgid "Usage: %s [-s subject] address...\n"
+msgstr ""
+
+#: ../src/folder.c:217
+msgid "Inbox"
+msgstr ""
+
+#: ../src/folder.c:218
+msgid "Drafts"
+msgstr ""
+
+#: ../src/folder.c:219
+msgid "Sent"
+msgstr ""
+
+#: ../src/folder.c:220
+msgid "Trash"
+msgstr "Basura"
+
+#: ../src/mailer.c:159
+msgid "New account"
+msgstr ""
+
+#: ../src/mailer.c:159
+msgid "Account settings"
+msgstr ""
+
+#: ../src/mailer.c:159
+msgid "Account confirmation"
+msgstr ""
+
+#: ../src/mailer.c:177
+msgid "_New mail"
+msgstr ""
+
+#: ../src/mailer.c:179
+msgid "_Open..."
+msgstr "_Abrir..."
+
+#: ../src/mailer.c:182 ../src/mailer.c:268
+msgid "Send / Receive"
+msgstr ""
+
+#: ../src/mailer.c:189
+msgid "_Quit"
+msgstr ""
+
+#: ../src/mailer.c:198
+msgid "Cop_y"
+msgstr "_Copiar"
+
+#: ../src/mailer.c:203
+msgid "Select _All"
+msgstr "Seleccionar _todo"
+
+#: ../src/mailer.c:212
+msgid "_Preferences"
+msgstr "Prefere_ncias"
+
+#: ../src/mailer.c:219
+msgid "_Reply"
+msgstr ""
+
+#: ../src/mailer.c:221
+msgid "Reply to _All"
+msgstr ""
+
+#: ../src/mailer.c:223
+msgid "_Forward"
+msgstr ""
+
+#: ../src/mailer.c:229
+msgid "_Delete"
+msgstr "_Eliminar"
+
+#: ../src/mailer.c:232
+msgid "_View source"
+msgstr ""
+
+#: ../src/mailer.c:253
+msgid "_Message"
+msgstr ""
+
+#: ../src/mailer.c:261
+msgid "New message"
+msgstr ""
+
+#: ../src/mailer.c:264
+msgid "Open message"
+msgstr ""
+
+#: ../src/mailer.c:270
+msgid "Stop"
+msgstr ""
+
+#: ../src/mailer.c:273 ../src/mailer.c:295 ../src/mailer.c:309
+msgid "Reply"
+msgstr ""
+
+#: ../src/mailer.c:274 ../src/mailer.c:296 ../src/mailer.c:310
+msgid "Reply to all"
+msgstr ""
+
+#: ../src/mailer.c:276 ../src/mailer.c:298 ../src/mailer.c:312
+msgid "Forward"
+msgstr ""
+
+#: ../src/mailer.c:279 ../src/mailer.c:300 ../src/mailer.c:314
+msgid "Delete"
+msgstr "Eliminar"
+
+#: ../src/mailer.c:280 ../src/mailer.c:315
+msgid "Print"
+msgstr "Imprimir"
+
+#: ../src/mailer.c:283
+msgid "Preferences"
+msgstr "Preferencias"
+
+#: ../src/mailer.c:292 ../src/mailer.c:306
+msgid "New mail"
+msgstr ""
+
+#: ../src/mailer.c:421
+msgid " - Folders"
+msgstr ""
+
+#: ../src/mailer.c:499
+msgid "Message list"
+msgstr ""
+
+#: ../src/mailer.c:530
+msgid "Message"
+msgstr ""
+
+#: ../src/mailer.c:568 ../src/mailer.c:1997
+msgid "Plug-ins"
+msgstr ""
+
+#: ../src/mailer.c:688
+msgid "Folders"
+msgstr "Carpetas"
+
+#: ../src/mailer.c:746
+msgid "Subject"
+msgstr ""
+
+#: ../src/mailer.c:748
+msgid "From"
+msgstr ""
+
+#: ../src/mailer.c:750
+msgid "To"
+msgstr ""
+
+#: ../src/mailer.c:752
+msgid "Date"
+msgstr ""
+
+#: ../src/mailer.c:866
+msgid " Subject: "
+msgstr ""
+
+#: ../src/mailer.c:867
+msgid " From: "
+msgstr ""
+
+#: ../src/mailer.c:868
+msgid " To: "
+msgstr ""
+
+#: ../src/mailer.c:869
+msgid " Date: "
+msgstr ""
+
+#: ../src/mailer.c:1271
+msgid ""
+"The messages selected will be deleted.\n"
+"Continue?"
+msgstr ""
+
+#: ../src/mailer.c:1436
+msgid "Mailer - View source"
+msgstr ""
+
+#: ../src/mailer.c:1511
+msgid "Re: "
+msgstr ""
+
+#: ../src/mailer.c:1590
+msgid "Save as..."
+msgstr "Guardar como..."
+
+#: ../src/mailer.c:1659
+msgid "Open..."
+msgstr ""
+
+#: ../src/mailer.c:1705
+msgid "translator-credits"
+msgstr ""
+
+#: ../src/mailer.c:1802
+msgid "Mailer preferences"
+msgstr ""
+
+#: ../src/mailer.c:1879 ../src/mailer.c:1980
+msgid "Enabled"
+msgstr ""
+
+#: ../src/mailer.c:1883 ../src/mailer.c:1986
+msgid "Name"
+msgstr ""
+
+#: ../src/mailer.c:1887
+msgid "Type"
+msgstr "Tipo"
+
+#: ../src/mailer.c:1924
+msgid "Accounts"
+msgstr ""
+
+#: ../src/mailer.c:1939
+msgid "Messages font:"
+msgstr ""
+
+#: ../src/mailer.c:1953
+msgid "Display"
+msgstr ""
+
+#: ../src/mailer.c:2124
+msgid "No account plug-in available"
+msgstr ""
+
+#: ../src/mailer.c:2281 ../src/mailer.c:2576
+msgid "Account name"
+msgstr ""
+
+#: ../src/mailer.c:2290
+msgid "Your name"
+msgstr ""
+
+#: ../src/mailer.c:2297
+msgid "e-mail address"
+msgstr ""
+
+#: ../src/mailer.c:2304
+msgid "Type of account"
+msgstr ""
+
+#: ../src/mailer.c:2465
+msgid "Choose file"
+msgstr ""
+
+#: ../src/mailer.c:2652
+msgid "hidden"
+msgstr ""
+
+#: ../src/mailer.c:2694
+msgid "Yes"
+msgstr "Si"
+
+#: ../src/mailer.c:2694
+msgid "No"
+msgstr "No"
+
+#: ../src/mailer.c:2726
+msgid "Account type "
+msgstr ""
+
+#: ../src/mailer.c:2727
+msgid " active\n"
+msgstr ""
+
+#: ../src/mailer.c:2789
+msgid "Edit account: "
+msgstr ""
+
+#: ../src/mailer.c:2811
+msgid "Account name:"
+msgstr ""
+
+#: ../src/mailer.c:2824
+msgid "Identity:"
+msgstr ""
+
+#: ../src/mailer.c:2829
+msgid "Name:"
+msgstr "Nombre:"
+
+#: ../src/mailer.c:2844
+msgid "Address:"
+msgstr ""
+
+#: ../src/mailer.c:2859
+msgid "Organization:"
+msgstr ""
+
+#: ../src/mailer.c:2876
+msgid "Account"
+msgstr ""
+
+#: ../src/mailer.c:2881
+msgid "Settings"
+msgstr ""
+
+#: ../src/mailer.c:2974
+msgid "An error occured while saving preferences"
+msgstr ""
+
+#: ../src/mailer.c:3291 ../src/mailer.c:3295
+msgid "Question"
+msgstr "Pregunta"
+
+#: ../src/mailer.c:3381
+#, c-format
+msgid "%s/%s: %d %s"
+msgstr ""
+
+#: ../src/mailer.c:3384
+msgid "messages"
+msgstr ""
+
+#: ../src/mailer.c:3384
+msgid "message"
+msgstr ""
+
+#: ../src/mailer.c:3387
+msgid "Ready"
+msgstr ""
+
+#: ../src/main.c:78
+#, c-format
+msgid "Usage: %s\n"
+msgstr ""
