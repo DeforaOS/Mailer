@@ -139,6 +139,7 @@ static gboolean _compose_close(Compose * compose);
 
 /* callbacks */
 static void _compose_on_about(gpointer data);
+static void _compose_on_attach(gpointer data);
 static gboolean _compose_on_closex(gpointer data);
 static void _compose_on_contents(gpointer data);
 static gboolean _compose_on_headers_filter(GtkTreeModel * model,
@@ -245,7 +246,7 @@ static DesktopToolbar _compose_toolbar[] =
 	{ N_("Copy"), G_CALLBACK(compose_copy), GTK_STOCK_COPY, 0, 0, NULL },
 	{ N_("Paste"), G_CALLBACK(compose_paste), GTK_STOCK_PASTE, 0, 0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Attach"), G_CALLBACK(compose_attach_dialog), "stock_attach", 0, 0,
+	{ N_("Attach"), G_CALLBACK(_compose_on_attach), "stock_attach", 0, 0,
 		NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
@@ -724,17 +725,45 @@ void compose_append_text(Compose * compose, char const * text)
 }
 
 
-/* compose_attach_dialog */
-void compose_attach_dialog(Compose * compose)
+/* compose_attach */
+int compose_attach(Compose * compose, char const * filename)
 {
 	const int iconsize = 48;
+	GtkIconTheme * theme;
+	char const * type;
+	GdkPixbuf * pixbuf;
+	GtkTreeIter iter;
+	char * p;
+
+	if(filename == NULL)
+		return compose_attach_dialog(compose);
+	if((p = strdup(filename)) == NULL)
+		return -compose_error(compose, strerror(errno), 1);
+	compose_set_modified(compose, TRUE);
+	theme = gtk_icon_theme_get_default();
+	pixbuf = NULL;
+	if((type = mime_type(compose->mime, filename)) != NULL)
+		mime_icons(compose->mime, type, iconsize, &pixbuf, -1);
+	if(pixbuf == NULL)
+		pixbuf = gtk_icon_theme_load_icon(theme, GTK_STOCK_FILE,
+				iconsize, 0, NULL);
+	gtk_list_store_append(compose->a_store, &iter);
+	gtk_list_store_set(compose->a_store, &iter, CAC_FILENAME, filename,
+			CAC_BASENAME, basename(p), CAC_ICON, pixbuf, -1);
+	g_object_unref(pixbuf);
+	free(p);
+	/* FIXME open and keep a handle on the file */
+	return 0;
+}
+
+
+/* compose_attach_dialog */
+int compose_attach_dialog(Compose * compose)
+{
+	int ret = 0;
 	GtkWidget * dialog;
 	GSList * filenames = NULL;
 	GSList * p;
-	char const * type;
-	GdkPixbuf * pixbuf;
-	GtkIconTheme * theme;
-	GtkTreeIter iter;
 
 	dialog = gtk_file_chooser_dialog_new(_("Attach file..."),
 			GTK_WINDOW(compose->window),
@@ -747,25 +776,14 @@ void compose_attach_dialog(Compose * compose)
 					dialog));
 	gtk_widget_destroy(dialog);
 	if(filenames == NULL)
-		return;
-	compose_set_modified(compose, TRUE);
-	theme = gtk_icon_theme_get_default();
+		return 0;
 	for(p = filenames; p != NULL; p = p->next)
-	{
-		pixbuf = NULL;
-		if((type = mime_type(compose->mime, p->data)) != NULL)
-			mime_icons(compose->mime, type, iconsize, &pixbuf, -1);
-		if(pixbuf == NULL)
-			pixbuf = gtk_icon_theme_load_icon(theme, GTK_STOCK_FILE,
-					iconsize, 0, NULL);
-		gtk_list_store_append(compose->a_store, &iter);
-		gtk_list_store_set(compose->a_store, &iter, CAC_FILENAME,
-				p->data, CAC_BASENAME, basename(p->data),
-				CAC_ICON, pixbuf, -1);
-	}
+		if(compose_attach(compose, p->data) != 0)
+			ret = -1;
 	g_slist_foreach(filenames, (GFunc)g_free, NULL);
 	g_slist_free(filenames);
 	gtk_widget_show(compose->a_window);
+	return ret;
 }
 
 
@@ -1384,6 +1402,15 @@ static void _compose_on_about(gpointer data)
 	Compose * compose = data;
 
 	compose_show_about(compose, TRUE);
+}
+
+
+/* compose_on_attach */
+static void _compose_on_attach(gpointer data)
+{
+	Compose * compose = data;
+
+	compose_attach_dialog(compose);
 }
 
 

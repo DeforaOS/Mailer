@@ -67,7 +67,8 @@ void compose_append_text(Compose * compose, char const * text);
 int compose_insert_file(Compose * compose, char const * filename);
 int compose_insert_file_dialog(Compose * compose);
 
-void compose_attach_dialog(Compose * compose);
+int compose_attach(Compose * compose, char const * filename);
+int compose_attach_dialog(Compose * compose);
 
 void compose_copy(Compose * compose);
 void compose_cut(Compose * compose);
