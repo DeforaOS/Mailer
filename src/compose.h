@@ -64,6 +64,8 @@ void compose_add_field(Compose * compose, char const * field,
 
 int compose_append_signature(Compose * compose);
 void compose_append_text(Compose * compose, char const * text);
+int compose_insert_file(Compose * compose, char const * filename);
+int compose_insert_file_dialog(Compose * compose);
 
 void compose_attach_dialog(Compose * compose);
 

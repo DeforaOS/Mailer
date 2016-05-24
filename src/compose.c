@@ -143,6 +143,7 @@ static gboolean _compose_on_closex(gpointer data);
 static void _compose_on_contents(gpointer data);
 static gboolean _compose_on_headers_filter(GtkTreeModel * model,
 		GtkTreeIter * iter, gpointer data);
+static void _compose_on_insert_file(gpointer data);
 static void _compose_on_view_add_field(gpointer data);
 
 
@@ -196,6 +197,13 @@ static DesktopMenu _menu_edit[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static DesktopMenu _menu_insert[] =
+{
+	{ N_("File..."), G_CALLBACK(_compose_on_insert_file), "insert-text", 0,
+		0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static DesktopMenu _menu_view[] =
 {
 	{ N_("Add field"), G_CALLBACK(_compose_on_view_add_field), "add", 0,
@@ -217,11 +225,12 @@ static DesktopMenu _menu_help[] =
 
 static DesktopMenubar _compose_menubar[] =
 {
-	{ N_("_File"), _menu_file },
-	{ N_("_Edit"), _menu_edit },
-	{ N_("_View"), _menu_view },
-	{ N_("_Help"), _menu_help },
-	{ NULL, NULL }
+	{ N_("_File"),	_menu_file	},
+	{ N_("_Edit"),	_menu_edit	},
+	{ N_("_Insert"),_menu_insert	},
+	{ N_("_View"),	_menu_view	},
+	{ N_("_Help"),	_menu_help	},
+	{ NULL,		NULL		}
 };
 #endif
 
@@ -831,6 +840,113 @@ int compose_error(Compose * compose, char const * message, int ret)
 }
 
 
+/* compose_insert_file */
+int compose_insert_file(Compose * compose, char const * filename)
+{
+	int ret = 0;
+	FILE * fp;
+	GtkTextBuffer * tbuf;
+	char buf[BUFSIZ];
+	size_t len;
+	char * p;
+	size_t rlen;
+	size_t wlen;
+	GError * error = NULL;
+
+	if(filename == NULL)
+		return compose_insert_file_dialog(compose);
+	/* FIXME use a GIOChannel instead (with a GtkDialog or GtkStatusBar) */
+	if((fp = fopen(filename, "r")) == NULL)
+	{
+		snprintf(buf, sizeof(buf), "%s: %s", filename, strerror(errno));
+		return -compose_error(compose, buf, 1);
+	}
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(compose->view));
+	while((len = fread(buf, sizeof(char), sizeof(buf), fp)) > 0)
+	{
+#if 0
+		if((p = g_convert(buf, len, "UTF-8", "ISO-8859-15", &rlen,
+						&wlen, NULL)) != NULL)
+		{
+			gtk_text_buffer_insert_at_cursor(tbuf, p, wlen);
+			g_free(p);
+		}
+		else
+			gtk_text_buffer_insert(tbuf, &iter, buf, len);
+#else
+		if((p = g_locale_to_utf8(buf, len, &rlen, &wlen, &error))
+				!= NULL)
+			/* FIXME may lose characters */
+			gtk_text_buffer_insert_at_cursor(tbuf, p, wlen);
+		else
+		{
+			compose_error(compose, error->message, 1);
+			g_error_free(error);
+			error = NULL;
+			gtk_text_buffer_insert_at_cursor(tbuf, buf, len);
+		}
+#endif
+	}
+	if(ferror(fp))
+	{
+		snprintf(buf, sizeof(buf), "%s: %s", filename, strerror(errno));
+		ret = -compose_error(compose, buf, 1);
+	}
+	fclose(fp);
+	compose_set_modified(compose, TRUE);
+	return ret;
+}
+
+
+/* compose_insert_file_dialog */
+static void _insert_file_dialog_filters(GtkWidget * dialog);
+
+int compose_insert_file_dialog(Compose * compose)
+{
+	int ret;
+	GtkWidget * dialog;
+	char * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new(_("Insert file..."),
+			GTK_WINDOW(compose->window),
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+	_insert_file_dialog_filters(dialog);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	gtk_widget_destroy(dialog);
+	if(filename == NULL)
+		return TRUE;
+	ret = compose_insert_file(compose, filename);
+	g_free(filename);
+	return ret;
+}
+
+static void _insert_file_dialog_filters(GtkWidget * dialog)
+{
+	GtkFileFilter * filter;
+	char const * types[] = {
+		"application/x-perl",
+		"application/x-shellscript",
+		"application/xml",
+		"application/xslt+xml",
+		"text/plain" };
+	size_t i;
+
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("Text files"));
+	for(i = 0; i < sizeof(types) / sizeof(*types); i++)
+		gtk_file_filter_add_mime_type(filter, types[i]);
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("All files"));
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+}
+
+
 /* compose_paste */
 void compose_paste(Compose * compose)
 {
@@ -1300,6 +1416,15 @@ static gboolean _compose_on_headers_filter(GtkTreeModel * model,
 
 	gtk_tree_model_get(model, iter, CHC_VISIBLE, &visible, -1);
 	return visible;
+}
+
+
+/* compose_on_insert_file */
+static void _compose_on_insert_file(gpointer data)
+{
+	Compose * compose = data;
+
+	compose_insert_file_dialog(compose);
 }
 
 
