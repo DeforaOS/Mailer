@@ -202,6 +202,9 @@ static DesktopMenu _menu_insert[] =
 {
 	{ N_("File..."), G_CALLBACK(_compose_on_insert_file), "insert-text", 0,
 		0 },
+	{ "", NULL, NULL, 0, 0 },
+	{ N_("Attachment..."), G_CALLBACK(_compose_on_attach), "stock_attach",
+		0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
