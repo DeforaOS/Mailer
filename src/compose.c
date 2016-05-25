@@ -278,6 +278,7 @@ Compose * compose_new(Config * config)
 		"To:", "Cc:", "Bcc:", "Reply-To:", "Newsgroup:",
 		"Followup-To:" };
 	size_t i;
+	gint size;
 
 	if((compose = malloc(sizeof(*compose))) == NULL)
 	{
@@ -352,6 +353,9 @@ Compose * compose_new(Config * config)
 #else
 	vpaned = gtk_vpaned_new();
 #endif
+	if(gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &size, &size) != TRUE)
+		size = 24;
+	gtk_paned_set_position(GTK_PANED(vpaned), size * 2);
 	/* headers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
