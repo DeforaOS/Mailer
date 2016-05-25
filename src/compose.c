@@ -145,7 +145,7 @@ static void _compose_on_contents(gpointer data);
 static gboolean _compose_on_headers_filter(GtkTreeModel * model,
 		GtkTreeIter * iter, gpointer data);
 static void _compose_on_insert_file(gpointer data);
-static void _compose_on_view_add_field(gpointer data);
+static void _compose_on_insert_header(gpointer data);
 
 
 /* variables */
@@ -200,18 +200,14 @@ static DesktopMenu _menu_edit[] =
 
 static DesktopMenu _menu_insert[] =
 {
+	{ N_("Header"), G_CALLBACK(_compose_on_insert_header), "add", 0,
+		0 },
+	{ "", NULL, NULL, 0, 0 },
 	{ N_("File..."), G_CALLBACK(_compose_on_insert_file), "insert-text", 0,
 		0 },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("Attachment..."), G_CALLBACK(_compose_on_attach), "stock_attach",
 		0, 0 },
-	{ NULL, NULL, NULL, 0, 0 }
-};
-
-static DesktopMenu _menu_view[] =
-{
-	{ N_("Add field"), G_CALLBACK(_compose_on_view_add_field), "add", 0,
-		0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -232,7 +228,6 @@ static DesktopMenubar _compose_menubar[] =
 	{ N_("_File"),	_menu_file	},
 	{ N_("_Edit"),	_menu_edit	},
 	{ N_("_Insert"),_menu_insert	},
-	{ N_("_View"),	_menu_view	},
 	{ N_("_Help"),	_menu_help	},
 	{ NULL,		NULL		}
 };
@@ -1458,8 +1453,8 @@ static void _compose_on_insert_file(gpointer data)
 }
 
 
-/* compose_on_view_add_fields */
-static void _compose_on_view_add_field(gpointer data)
+/* compose_on_insert_header */
+static void _compose_on_insert_header(gpointer data)
 {
 	Compose * compose = data;
 
