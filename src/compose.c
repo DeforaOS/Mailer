@@ -678,6 +678,9 @@ void compose_add_field(Compose * compose, char const * field,
 		char const * value)
 {
 	GtkTreeIter iter;
+	GtkTreeIter iter2;
+	gboolean valid;
+	GtkTreePath * path;
 
 	gtk_list_store_append(compose->h_store, &iter);
 	gtk_list_store_set(compose->h_store, &iter, CHC_VISIBLE, TRUE, -1);
@@ -687,6 +690,17 @@ void compose_add_field(Compose * compose, char const * field,
 	if(value != NULL)
 		gtk_list_store_set(compose->h_store, &iter, CHC_VALUE, value,
 				-1);
+	valid = gtk_tree_model_filter_convert_child_iter_to_iter(
+			GTK_TREE_MODEL_FILTER(compose->h_store_filter), &iter2,
+			&iter);
+	if(valid)
+	{
+		path = gtk_tree_model_get_path(GTK_TREE_MODEL(
+					compose->h_store_filter), &iter2);
+		gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(compose->h_view),
+				path, NULL, TRUE, 0.0, 0.5);
+		gtk_tree_path_free(path);
+	}
 }
 
 
