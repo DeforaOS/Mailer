@@ -107,9 +107,10 @@ typedef enum _ComposeAttachmentColumn
 {
 	CAC_FILENAME = 0,
 	CAC_BASENAME,
-	CAC_ICON
+	CAC_ICON,
+	CAC_FILE_POINTER
 } ComposeAttachmentColumn;
-#define CAC_LAST CAC_ICON
+#define CAC_LAST CAC_FILE_POINTER
 #define CAC_COUNT (CAC_LAST + 1)
 
 typedef enum _ComposeHeaderColumn
@@ -446,7 +447,7 @@ Compose * compose_new(Config * config)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(compose->a_window),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
 	compose->a_store = gtk_list_store_new(CAC_COUNT, G_TYPE_STRING,
-			G_TYPE_STRING, GDK_TYPE_PIXBUF);
+			G_TYPE_STRING, GDK_TYPE_PIXBUF, G_TYPE_POINTER);
 	compose->a_view = gtk_icon_view_new_with_model(GTK_TREE_MODEL(
 				compose->a_store));
 	gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(compose->a_view),
@@ -565,6 +566,21 @@ Compose * compose_new_open(Config * config, Message * message)
 /* compose_delete */
 void compose_delete(Compose * compose)
 {
+	GtkTreeModel * model;
+	GtkTreeIter iter;
+	gboolean valid;
+	FILE * fp;
+
+	model = GTK_TREE_MODEL(compose->a_store);
+	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
+			valid = gtk_tree_model_iter_next(model, &iter))
+	{
+		fp = NULL;
+		gtk_tree_model_get(model, &iter, CAC_FILE_POINTER, &fp, -1);
+		if(fp != NULL)
+			fclose(fp);
+	}
+	gtk_list_store_clear(compose->a_store);
 	gtk_widget_destroy(compose->window);
 	mime_delete(compose->mime);
 	free(compose);
@@ -750,11 +766,17 @@ int compose_attach(Compose * compose, char const * filename)
 	GdkPixbuf * pixbuf;
 	GtkTreeIter iter;
 	char * p;
+	FILE * fp;
 
 	if(filename == NULL)
 		return compose_attach_dialog(compose);
-	if((p = strdup(filename)) == NULL)
+	if((fp = fopen(filename, "rb")) == NULL)
 		return -compose_error(compose, strerror(errno), 1);
+	if((p = strdup(filename)) == NULL)
+	{
+		fclose(fp);
+		return -compose_error(compose, strerror(errno), 1);
+	}
 	compose_set_modified(compose, TRUE);
 	theme = gtk_icon_theme_get_default();
 	pixbuf = NULL;
@@ -765,10 +787,10 @@ int compose_attach(Compose * compose, char const * filename)
 				iconsize, 0, NULL);
 	gtk_list_store_append(compose->a_store, &iter);
 	gtk_list_store_set(compose->a_store, &iter, CAC_FILENAME, filename,
-			CAC_BASENAME, basename(p), CAC_ICON, pixbuf, -1);
+			CAC_BASENAME, basename(p), CAC_ICON, pixbuf,
+			CAC_FILE_POINTER, fp, -1);
 	g_object_unref(pixbuf);
 	free(p);
-	/* FIXME open and keep a handle on the file */
 	return 0;
 }
 
