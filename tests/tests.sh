@@ -53,8 +53,10 @@ _run()
 	shift
 	echo -n "$test:" 1>&2
 	(echo
-	echo "Testing: $OBJDIR$test" "$@"
-	LD_LIBRARY_PATH="$OBJDIR../src" "$OBJDIR$test" "$@") >> "$target" 2>&1
+	echo "Testing: $test" "$@"
+	testexe="./$test"
+	[ -x "$OBJDIR$test" ] && testexe="$OBJDIR$test"
+	LD_LIBRARY_PATH="$OBJDIR../src" "$testexe" "$@") >> "$target" 2>&1
 	res=$?
 	if [ $res -ne 0 ]; then
 		echo " FAIL (error $res)" 1>&2
