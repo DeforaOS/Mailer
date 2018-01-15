@@ -51,9 +51,6 @@
 #ifndef PROGNAME_COMPOSE
 # define PROGNAME_COMPOSE	"compose"
 #endif
-#ifndef PROGNAME
-# define PROGNAME		PROGNAME_COMPOSE
-#endif
 #ifndef PROGNAME_MAILER
 # define PROGNAME_MAILER	"mailer"
 #endif
@@ -867,7 +864,7 @@ int compose_error(Compose * compose, char const * message, int ret)
 
 	if(compose == NULL)
 		return error_set_print(compose->standalone
-				? PROGNAME : PROGNAME_MAILER,
+				? PROGNAME_COMPOSE : PROGNAME_MAILER,
 				ret, "%s", message);
 	dialog = gtk_message_dialog_new(GTK_WINDOW(compose->window),
 			GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -1145,11 +1142,13 @@ static int _send_mail(Compose * compose, char * msg, size_t msg_len)
 static int _mail_child(Compose * compose, int fd[2])
 {
 	if(close(fd[1]) != 0 || close(0) != 0 || dup2(fd[0], 0) == -1)
-		perror(compose->standalone ? PROGNAME : PROGNAME_MAILER);
+		perror(compose->standalone
+				? PROGNAME_COMPOSE : PROGNAME_MAILER);
 	else
 	{
 		execl(SENDMAIL_PATH, PROGNAME_SENDMAIL, "-bm", "-t", NULL);
-		fputs(PROGNAME ": ", stderr);
+		fprintf(stderr, "%s: ", compose->standalone
+				? PROGNAME_COMPOSE : PROGNAME_MAILER);
 		perror(SENDMAIL_PATH);
 	}
 	_exit(2);
@@ -1456,7 +1455,7 @@ static void _compose_on_contents(gpointer data)
 	Compose * compose = data;
 
 	desktop_help_contents(PACKAGE, compose->standalone
-			? PROGNAME : PROGNAME_MAILER);
+			? PROGNAME_COMPOSE : PROGNAME_MAILER);
 }
 
 
