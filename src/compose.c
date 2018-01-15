@@ -351,6 +351,9 @@ Compose * compose_new(Config * config)
 	/* paned */
 #if GTK_CHECK_VERSION(3, 0, 0)
 	vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+# if GTK_CHECK_VERSION(3, 16, 0)
+	gtk_paned_set_wide_handle(GTK_PANED(vpaned), TRUE);
+# endif
 #else
 	vpaned = gtk_vpaned_new();
 #endif
