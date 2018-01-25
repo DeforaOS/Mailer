@@ -1122,6 +1122,11 @@ static int _send_mail(Compose * compose, char * msg, size_t msg_len)
 	compose->snd_progress = gtk_progress_bar_new();
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(compose->snd_progress),
 			0.0);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(compose->snd_progress),
+			TRUE);
+#endif
+	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(compose->snd_progress), "");
 	gtk_box_pack_start(GTK_BOX(hbox), compose->snd_progress, TRUE, TRUE, 0);
 	widget = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
 	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(
