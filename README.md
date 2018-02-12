@@ -19,7 +19,7 @@ Mailer depends on the following components:
  * OpenSSL
  * DeforaOS libDesktop
  * DocBook-XSL (for the manual pages)
- * gtk-doc (for the API documentation)
+ * GTK-Doc (for the API documentation)
 
 With GCC, this should then be enough to compile Mailer:
 
