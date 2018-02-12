@@ -39,17 +39,17 @@
 
 /* private */
 /* constants */
+#ifndef PROGNAME_MAILER
+# define PROGNAME_MAILER	"mailer"
+#endif
 #ifndef PREFIX
-# define PREFIX		"/usr/local"
+# define PREFIX			"/usr/local"
 #endif
 #ifndef DATADIR
-# define DATADIR	PREFIX "/share"
+# define DATADIR		PREFIX "/share"
 #endif
 #ifndef LOCALEDIR
-# define LOCALEDIR	DATADIR "/locale"
-#endif
-#ifndef PROGNAME
-# define PROGNAME	"mailer"
+# define LOCALEDIR		DATADIR "/locale"
 #endif
 
 
@@ -64,7 +64,7 @@ static int _usage(void);
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs(PROGNAME, stderr);
+	fputs(PROGNAME_MAILER, stderr);
 	perror(message);
 	return ret;
 }
@@ -73,7 +73,7 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s\n"), PROGNAME);
+	fprintf(stderr, _("Usage: %s\n"), PROGNAME_MAILER);
 	return 1;
 }
 

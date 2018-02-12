@@ -43,7 +43,9 @@
 #include "../config.h"
 
 /* constants */
-#define PROGNAME "mailer"
+#ifndef PROGNAME
+# define PROGNAME_MAILER "mailer"
+#endif
 
 
 /* public */
@@ -221,7 +223,7 @@ void on_edit_unselect_all(gpointer data)
 /* on_help_contents */
 void on_help_contents(gpointer data)
 {
-	desktop_help_contents(PACKAGE, PROGNAME);
+	desktop_help_contents(PACKAGE, PROGNAME_MAILER);
 }
 
 
