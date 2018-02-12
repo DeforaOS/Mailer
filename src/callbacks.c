@@ -54,7 +54,7 @@
 /* on_closex */
 gboolean on_closex(gpointer data)
 {
-	Mailer * mailer = data;
+	(void) data;
 
 	/* FIXME may be composing or viewing messages */
 	gtk_main_quit();
@@ -223,6 +223,8 @@ void on_edit_unselect_all(gpointer data)
 /* on_help_contents */
 void on_help_contents(gpointer data)
 {
+	(void) data;
+
 	desktop_help_contents(PACKAGE, PROGNAME_MAILER);
 }
 
