@@ -120,7 +120,7 @@ static int _error(char const * message, int ret)
 static int _usage(void)
 {
 	fprintf(stderr, _("Usage: %s [-s subject] address...\n"),
-			 PROGNAME_MAILER);
+			 PROGNAME_COMPOSE);
 	return 1;
 }
 
