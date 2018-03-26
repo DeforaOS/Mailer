@@ -27,6 +27,11 @@ With GCC, this should then be enough to compile Mailer:
 
 To install (or package) Mailer in a different location:
 
+    $ make PREFIX="/another/prefix" install
+
+Mailer also supports `DESTDIR`, to be installed in a staging directory; for
+instance:
+
     $ make DESTDIR="/staging/directory" PREFIX="/another/prefix" install
 
 
