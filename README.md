@@ -7,7 +7,7 @@ About Mailer
 Mailer is a mail client application for the DeforaOS desktop.
 
 Mailer is part of the DeforaOS Project, and distributed under the terms of the
-BSD License (3-clause).
+BSD License (2-clause).
 
 
 Compiling Mailer
