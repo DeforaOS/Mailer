@@ -40,7 +40,7 @@ Documentation
 
 Manual pages for each of the executables installed are available in the `doc`
 folder. They are written in the DocBook-XML format, and need libxslt and
-DocBook-XSL to be installed to be converted to either HTML or man file format.
+DocBook-XSL to be installed for conversion to the HTML or man file format.
 
 Likewise, the API reference for libMailer (accounts and plug-ins) is available
 in the `doc/gtkdoc` folder, and is generated using gtk-doc.
