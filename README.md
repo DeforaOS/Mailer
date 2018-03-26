@@ -7,8 +7,9 @@ About Mailer
 Mailer is a mail client application for the DeforaOS desktop.
 
 It supports local mail folders in the mbox format, as well as POP 3 and IMAP 4
-servers, including for the GMail gateway. It currently requires a functional
-local e-mail service to send e-mails, through the `sendmail(1)` command.
+servers, including connectivity over SSL. It is possible to access GMail
+through its IMAP 4 gateway. It currently requires a functional local e-mail
+service to send e-mails; this is performed through the `sendmail(1)` command.
 
 Mailer is part of the DeforaOS Project, and distributed under the terms of the
 BSD License (2-clause).
