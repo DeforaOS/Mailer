@@ -21,9 +21,9 @@ Mailer depends on the following components:
  * DocBook-XSL (for the manual pages)
  * GTK-Doc (for the API documentation)
 
-With GCC, this should then be enough to compile Mailer:
+With GCC, this should then be enough to compile and install Mailer:
 
-    $ make
+    $ make install
 
 To install (or package) Mailer in a different location:
 
