@@ -1,5 +1,5 @@
 # $Id$
-# Copyright (c) 2016 Pierre Pronchery <khorben@defora.org>
+# Copyright (c) 2016-2020 Pierre Pronchery <khorben@defora.org>
 # This file is distributed under the same license as the Mailer package.
 # Pierre Pronchery <khorben@defora.org>, 2016.
 #
