@@ -79,7 +79,7 @@ msgstr "Tout _désélectionner"
 
 #: ../src/compose.c:199
 msgid "Header"
-msgstr ""
+msgstr "En-tÃªte"
 
 #: ../src/compose.c:202
 msgid "File..."
@@ -108,7 +108,7 @@ msgstr "_Edition"
 
 #: ../src/compose.c:226
 msgid "_Insert"
-msgstr ""
+msgstr "_Insertion"
 
 #: ../src/compose.c:227 ../src/mailer.c:252
 msgid "_Help"
