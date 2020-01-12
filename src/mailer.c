@@ -389,7 +389,7 @@ Mailer * mailer_new(void)
 	/* ssl */
 	SSL_load_error_strings();
 	SSL_library_init();
-	if((mailer->ssl_ctx = SSL_CTX_new(SSLv23_client_method())) == NULL
+	if((mailer->ssl_ctx = SSL_CTX_new(TLS_client_method())) == NULL
 			|| SSL_CTX_set_cipher_list(mailer->ssl_ctx,
 				SSL_DEFAULT_CIPHER_LIST) != 1
 			|| SSL_CTX_load_verify_locations(mailer->ssl_ctx, NULL,
