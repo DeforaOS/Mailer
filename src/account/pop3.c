@@ -330,6 +330,7 @@ static int _pop3_refresh(POP3 * pop3, AccountFolder * folder,
 {
 	POP3Command * cmd;
 	char buf[32];
+	(void) folder;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() %u\n", __func__, (message != NULL)
