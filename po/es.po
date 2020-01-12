@@ -51,11 +51,11 @@ msgstr "_Cerrar"
 
 #: ../src/compose.c:174
 msgid "_Undo"
-msgstr ""
+msgstr "_Deshacer"
 
 #: ../src/compose.c:175
 msgid "_Redo"
-msgstr ""
+msgstr "_Rehacer"
 
 #: ../src/compose.c:177 ../src/mailer.c:194
 msgid "_Cut"
@@ -91,7 +91,7 @@ msgstr ""
 
 #: ../src/compose.c:212 ../src/mailer.c:237
 msgid "_Contents"
-msgstr ""
+msgstr "_Contenidos"
 
 #: ../src/compose.c:215 ../src/compose.c:217 ../src/mailer.c:240
 #: ../src/mailer.c:242
@@ -165,11 +165,11 @@ msgstr ""
 
 #: ../src/compose.c:984
 msgid "Text files"
-msgstr ""
+msgstr "Archivos de texto"
 
 #: ../src/compose.c:989
 msgid "All files"
-msgstr ""
+msgstr "Todos los archivos"
 
 #: ../src/compose.c:1114
 msgid "Sending mail..."
@@ -204,7 +204,7 @@ msgstr ""
 
 #: ../src/folder.c:217
 msgid "Sent"
-msgstr ""
+msgstr "Enviado"
 
 #: ../src/folder.c:218
 msgid "Trash"
@@ -268,7 +268,7 @@ msgstr "_Eliminar"
 
 #: ../src/mailer.c:230
 msgid "_View source"
-msgstr ""
+msgstr "_Ver la fuente"
 
 #: ../src/mailer.c:251
 msgid "_Message"
@@ -284,7 +284,7 @@ msgstr "Abrir mensaje"
 
 #: ../src/mailer.c:268
 msgid "Stop"
-msgstr ""
+msgstr "Detener"
 
 #: ../src/mailer.c:271 ../src/mailer.c:293 ../src/mailer.c:307
 msgid "Reply"
@@ -442,7 +442,7 @@ msgstr ""
 
 #: ../src/mailer.c:2463
 msgid "Choose file"
-msgstr ""
+msgstr "Eligir el archivo"
 
 #: ../src/mailer.c:2650
 msgid "hidden"
@@ -482,7 +482,7 @@ msgstr "Nombre:"
 
 #: ../src/mailer.c:2842
 msgid "Address:"
-msgstr ""
+msgstr "Dirección:"
 
 #: ../src/mailer.c:2857
 msgid "Organization:"
