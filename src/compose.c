@@ -248,7 +248,7 @@ static DesktopToolbar _compose_toolbar[] =
 
 /* public */
 /* compose_new */
-static GtkWidget * _new_text_view(Compose * compose);
+static GtkWidget * _new_text_view(void);
 static void _on_header_field_edited(GtkCellRendererText * renderer,
 		gchar * path, gchar * text, gpointer data);
 static void _on_header_edited(GtkCellRendererText * renderer, gchar * path,
@@ -422,7 +422,7 @@ Compose * compose_new(Config * config)
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	compose->view = _new_text_view(compose);
+	compose->view = _new_text_view();
 	compose_set_font(compose, _compose_get_font(compose));
 	gtk_container_add(GTK_CONTAINER(widget), compose->view);
 	gtk_box_pack_start(GTK_BOX(vbox2), widget, TRUE, TRUE, 0);
@@ -464,7 +464,7 @@ Compose * compose_new(Config * config)
 	return compose;
 }
 
-static GtkWidget * _new_text_view(Compose * compose)
+static GtkWidget * _new_text_view(void)
 {
 	GtkWidget * textview;
 
@@ -482,6 +482,7 @@ static void _on_header_field_edited(GtkCellRendererText * renderer,
 	GtkTreeIter iter;
 	unsigned long count = 0;
 	gboolean last;
+	(void) renderer;
 
 	if(_compose_get_iter(compose, &iter, path) != TRUE)
 		return;
@@ -503,6 +504,7 @@ static void _on_header_edited(GtkCellRendererText * renderer, gchar * path,
 	GtkTreeIter iter;
 	unsigned long count = 0;
 	gboolean last;
+	(void) renderer;
 
 	if(_compose_get_iter(compose, &iter, path) != TRUE)
 		return;
@@ -520,6 +522,7 @@ static gboolean _on_header_foreach_count_visible(GtkTreeModel * model,
 {
 	unsigned long * count = data;
 	gboolean visible = FALSE;
+	(void) path;
 
 	gtk_tree_model_get(model, iter, CHC_VISIBLE, &visible, -1);
 	if(visible)
@@ -1467,6 +1470,7 @@ static gboolean _compose_on_headers_filter(GtkTreeModel * model,
 		GtkTreeIter * iter, gpointer data)
 {
 	gboolean visible = TRUE;
+	(void) data;
 
 	gtk_tree_model_get(model, iter, CHC_VISIBLE, &visible, -1);
 	return visible;
