@@ -53,17 +53,20 @@
 
 
 /* constants */
+#ifndef PROGNAME_MAILER
+# define PROGNAME_MAILER	"mailer"
+#endif
 #ifndef PREFIX
-# define PREFIX		"/usr/local"
+# define PREFIX			"/usr/local"
 #endif
 #ifndef LIBDIR
-# define LIBDIR		PREFIX "/lib"
+# define LIBDIR			PREFIX "/lib"
 #endif
 #ifndef PLUGINDIR
-# define PLUGINDIR	LIBDIR "/Mailer"
+# define PLUGINDIR		LIBDIR "/Mailer"
 #endif
 #ifndef SYSCONFDIR
-# define SYSCONFDIR	PREFIX "/etc"
+# define SYSCONFDIR		PREFIX "/etc"
 #endif
 
 
@@ -373,7 +376,7 @@ Mailer * mailer_new(void)
 
 	if((mailer = object_new(sizeof(*mailer))) == NULL)
 	{
-		error_print("mailer");
+		error_print(PROGNAME_MAILER);
 		return NULL;
 	}
 	/* accounts */
@@ -636,7 +639,7 @@ static int _new_accounts(Mailer * mailer)
 	{
 		error_set_code(1, "%s: %s", dirname, strerror(errno));
 		string_delete(dirname);
-		return error_print("mailer");
+		return error_print(PROGNAME_MAILER);
 	}
 	for(de = readdir(dir); de != NULL; de = readdir(dir))
 	{
@@ -648,21 +651,22 @@ static int _new_accounts(Mailer * mailer)
 		if((p = realloc(mailer->available, (mailer->available_cnt + 1)
 						* sizeof(*p))) == NULL)
 		{
-			error_set_print("mailer", 1, "%s", strerror(errno));
+			error_set_print(PROGNAME_MAILER, 1, "%s",
+					strerror(errno));
 			continue;
 		}
 		mailer->available = p;
 		if((p[mailer->available_cnt] = account_new(NULL, de->d_name,
 						NULL, NULL)) == NULL)
 		{
-			error_print("mailer");
+			error_print(PROGNAME_MAILER);
 			continue;
 		}
 		mailer->available_cnt++;
 	}
 	if(closedir(dir) != 0)
-		ret = error_set_print("mailer", 1, "%s: %s", dirname, strerror(
-					errno));
+		ret = error_set_print(PROGNAME_MAILER, 1, "%s: %s", dirname,
+				strerror(errno));
 	string_delete(dirname);
 	return ret;
 }
@@ -1114,7 +1118,7 @@ int mailer_error(Mailer * mailer, char const * message, int ret)
 #endif
 
 	if(mailer == NULL)
-		return error_set_print("mailer", ret, "%s", message);
+		return error_set_print(PROGNAME_MAILER, ret, "%s", message);
 #if GTK_CHECK_VERSION(2, 18, 0)
 	/* info bar */
 	gtk_label_set_text(GTK_LABEL(mailer->fo_infobar_label), message);
