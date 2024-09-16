@@ -2091,6 +2091,7 @@ typedef struct _AccountData
 {
 	Mailer * mailer;
 	char * title;
+	AccountConfig * config;
 	AccountIdentity identity;
 	unsigned int available;
 	Account * account;
@@ -2101,7 +2102,10 @@ typedef struct _AccountData
 
 /* functions */
 static GtkWidget * _assistant_account_select(AccountData * ad);
-static GtkWidget * _assistant_account_config(AccountConfig * config);
+static GtkWidget * _assistant_account_settings(AccountConfig * config);
+static AccountConfig * _assistant_account_config_copy(
+		AccountConfig const * config);
+static void _assistant_account_config_free(AccountConfig * config);
 
 #if !GTK_CHECK_VERSION(2, 10, 0)
 # include "gtkassistant.c"
@@ -2215,7 +2219,7 @@ static void _on_assistant_apply(gpointer data)
 }
 
 /* on_assistant_prepare */
-static GtkWidget * _account_display(Account * account);
+static GtkWidget * _account_display(AccountData * ad);
 
 static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 		gpointer data)
@@ -2246,15 +2250,20 @@ static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 			ad->settings = _assistant_account_select(ad);
 		}
 		else
-			ad->settings = _assistant_account_config(
+		{
+			ad->config = _assistant_account_config_copy(
 					account_get_config(ad->account));
+			/* FIXME ad->config may be NULL */
+			assert(ad->config != NULL);
+			ad->settings = _assistant_account_settings(ad->config);
+		}
 		gtk_container_add(GTK_CONTAINER(page), ad->settings);
 		gtk_widget_show_all(ad->settings);
 	}
 	else if(i == 2)
 	{
 		gtk_container_remove(GTK_CONTAINER(page), ad->confirm);
-		ad->confirm = _account_display(ad->account);
+		ad->confirm = _account_display(ad);
 		gtk_container_add(GTK_CONTAINER(page), ad->confirm);
 	}
 	old = i;
@@ -2363,7 +2372,7 @@ static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 	gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
 }
 
-/* _assistant_account_config */
+/* _assistant_account_settings */
 static GtkWidget * _update_string(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
 static GtkWidget * _update_password(AccountConfig * config,
@@ -2374,7 +2383,7 @@ static GtkWidget * _update_uint16(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
 static GtkWidget * _update_boolean(AccountConfig * config);
 
-static GtkWidget * _assistant_account_config(AccountConfig * config)
+static GtkWidget * _assistant_account_settings(AccountConfig * config)
 {
 	GtkWidget * vbox;
 	GtkSizeGroup * group;
@@ -2560,9 +2569,9 @@ static GtkWidget * _display_uint16(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
 static GtkWidget * _display_boolean(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
-static GtkWidget * _account_display(Account * account)
+static GtkWidget * _account_display(AccountData * ad)
 {
-	AccountConfig * config;
+	Account * account = ad->account;
 	AccountConfig p;
 	GtkWidget * vbox;
 	GtkSizeGroup * group;
@@ -2570,7 +2579,6 @@ static GtkWidget * _account_display(Account * account)
 	GtkWidget * widget;
 	unsigned int i;
 
-	config = account_get_config(account);
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
@@ -2581,27 +2589,27 @@ static GtkWidget * _account_display(Account * account)
 	pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 	widget = _display_string(&p, desc, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
-	for(i = 0; config[i].type != ACT_NONE; i++)
+	for(i = 0; ad->config[i].type != ACT_NONE; i++)
 	{
-		switch(config[i].type)
+		switch(ad->config[i].type)
 		{
 			case ACT_STRING:
-				widget = _display_string(&config[i], desc,
+				widget = _display_string(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_PASSWORD:
-				widget = _display_password(&config[i], desc,
+				widget = _display_password(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_FILE:
-				widget = _display_file(&config[i], desc, group);
+				widget = _display_file(&ad->config[i], desc, group);
 				break;
 			case ACT_UINT16:
-				widget = _display_uint16(&config[i], desc,
+				widget = _display_uint16(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_BOOLEAN:
-				widget = _display_boolean(&config[i], desc,
+				widget = _display_boolean(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_SEPARATOR:
@@ -2741,6 +2749,81 @@ static void _on_preferences_account_toggle(GtkCellRendererToggle * renderer,
 			!gtk_cell_renderer_toggle_get_active(renderer), -1);
 }
 
+static AccountConfig * _assistant_account_config_copy(
+		AccountConfig const * config)
+{
+	AccountConfig * ret = NULL;
+	AccountConfig * p;
+	size_t i;
+
+	if(config == NULL)
+		return NULL;
+	for(i = 0;; i++)
+	{
+		if((p = realloc(ret, sizeof(*ret) * (i + 2))) == NULL)
+		{
+			_assistant_account_config_free(ret);
+			return NULL;
+		}
+		ret = p;
+		ret[i] = config[i];
+		ret[i + 1].type = ACT_NONE;
+		ret[i + 1].value = NULL;
+		switch(ret[i].type)
+		{
+			case ACT_BOOLEAN:
+			case ACT_NONE:
+			case ACT_SEPARATOR:
+			case ACT_UINT16:
+				break;
+			case ACT_STRING:
+			case ACT_PASSWORD:
+			case ACT_FILE:
+				if(ret[i].value != NULL)
+				{
+					ret[i].value = strdup(ret[i].value);
+					if(ret[i].value == NULL)
+					{
+						_assistant_account_config_free(
+								ret);
+						return NULL;
+					}
+				}
+				break;
+			default:
+				assert(0);
+				break;
+		}
+		if(config[i].type == ACT_NONE)
+			break;
+	}
+	return ret;
+}
+
+static void _assistant_account_config_free(AccountConfig * config)
+{
+	size_t i;
+
+	for(i = 0; config[i].type != ACT_NONE; i++)
+		switch(config[i].type)
+		{
+			case ACT_BOOLEAN:
+			case ACT_NONE:
+			case ACT_SEPARATOR:
+			case ACT_UINT16:
+				break;
+			case ACT_STRING:
+			case ACT_PASSWORD:
+			case ACT_FILE:
+				free(config[i].value);
+				break;
+			default:
+				assert(0);
+				break;
+		}
+	free(config);
+}
+
 /* _on_preferences_account_edit */
 static GtkWidget * _account_edit(Mailer * mailer, Account * account);
 static gboolean _account_edit_on_closex(GtkWidget * widget, GdkEvent * event,
@@ -2878,7 +2961,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 				_("Account")));
 	/* settings tab */
 	/* FIXME this affects the account directly (eg cancel does not work) */
-	widget = _assistant_account_config(account_get_config(account));
+	widget = _assistant_account_settings(account_get_config(account));
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), widget, gtk_label_new(
 				_("Settings")));
 	gtk_box_pack_start(GTK_BOX(content), notebook, TRUE, TRUE, 0);
