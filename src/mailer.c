@@ -47,6 +47,7 @@
 #include "callbacks.h"
 #include "mailer.h"
 #include "../config.h"
+
 #define _(string) gettext(string)
 #define N_(string) (string)
 #include "common.c"
@@ -73,6 +74,15 @@
 /* Mailer */
 /* private */
 /* types */
+typedef enum _AccountAssistantPage
+{
+	AAP_INTRO = 0,
+	AAP_SETTINGS,
+	AAP_CONFIRM
+} AccountAssistantPage;
+#define AAP_LAST AAP_CONFIRM
+#define AAP_COUNT (AAP_LAST + 1)
+
 typedef enum _MailerPluginColumn
 {
 	MPC_NAME = 0,
@@ -155,7 +165,7 @@ typedef void (*MailerForeachMessageCallback)(Mailer * mailer,
 
 
 /* constants */
-static const char * _title[3] =
+static const char * _title[AAP_COUNT] =
 {
 	N_("New account"), N_("Account settings"), N_("Account confirmation")
 };
@@ -2149,7 +2159,7 @@ static void _on_preferences_account_new(gpointer data)
 	/* plug-in selection */
 	page = _assistant_account_select(ad);
 	gtk_assistant_append_page(assistant, page);
-	gtk_assistant_set_page_title(assistant, page, _(_title[0]));
+	gtk_assistant_set_page_title(assistant, page, _(_title[AAP_INTRO]));
 	gtk_assistant_set_page_type(assistant, page, GTK_ASSISTANT_PAGE_INTRO);
 	gtk_assistant_set_page_complete(assistant, page, FALSE);
 	/* plug-in preferences */
@@ -2158,7 +2168,7 @@ static void _on_preferences_account_new(gpointer data)
 	ad->settings = page;
 	gtk_widget_show(page);
 	gtk_assistant_append_page(assistant, page);
-	gtk_assistant_set_page_title(assistant, page, _(_title[1]));
+	gtk_assistant_set_page_title(assistant, page, _(_title[AAP_SETTINGS]));
 	gtk_assistant_set_page_type(assistant, page,
 			GTK_ASSISTANT_PAGE_CONTENT);
 	gtk_assistant_set_page_complete(assistant, page, TRUE);
@@ -2167,7 +2177,7 @@ static void _on_preferences_account_new(gpointer data)
 	ad->confirm = page;
 	gtk_widget_show(page);
 	gtk_assistant_append_page(assistant, page);
-	gtk_assistant_set_page_title(assistant, page, _(_title[2]));
+	gtk_assistant_set_page_title(assistant, page, _(_title[AAP_CONFIRM]));
 	gtk_assistant_set_page_type(assistant, page,
 			GTK_ASSISTANT_PAGE_CONFIRM);
 	gtk_assistant_set_page_complete(assistant, page, TRUE);
@@ -2220,17 +2230,17 @@ static GtkWidget * _account_display(Account * account);
 static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 		gpointer data)
 {
-	static int old = 0;
+	static int old = AAP_INTRO;
 	AccountData * ad = data;
 	unsigned int i;
 	Account * ac;
 
 	i = gtk_assistant_get_current_page(GTK_ASSISTANT(widget));
 	gtk_window_set_title(GTK_WINDOW(widget), _(_title[i]));
-	if(i == 1)
+	if(i == AAP_SETTINGS)
 	{
 		gtk_container_remove(GTK_CONTAINER(page), ad->settings);
-		if(old == 0)
+		if(old == AAP_INTRO)
 		{
 			if(ad->account != NULL)
 				account_delete(ad->account);
@@ -2242,7 +2252,7 @@ static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 		{
 			mailer_error(ad->mailer, error_get(NULL), 0);
 			gtk_assistant_set_current_page(GTK_ASSISTANT(widget),
-					0);
+					AAP_INTRO);
 			ad->settings = _assistant_account_select(ad);
 		}
 		else
@@ -2251,7 +2261,7 @@ static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 		gtk_container_add(GTK_CONTAINER(page), ad->settings);
 		gtk_widget_show_all(ad->settings);
 	}
-	else if(i == 2)
+	else if(i == AAP_CONFIRM)
 	{
 		gtk_container_remove(GTK_CONTAINER(page), ad->confirm);
 		ad->confirm = _account_display(ad->account);
