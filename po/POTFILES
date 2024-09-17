@@ -1,3 +1,4 @@
+../src/account.c
 ../src/common.c
 ../src/compose.c
 ../src/compose-main.c

@@ -33,12 +33,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <libintl.h>
 #include <System.h>
 #include "folder.h"
 #include "mailer.h"
 #include "message.h"
 #include "account.h"
 #include "../config.h"
+
+#define _(string) gettext(string)
 
 
 /* constants */
@@ -151,7 +154,7 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 			|| account->definition->get_config == NULL)
 	{
 		account_delete(account);
-		error_set_code(1, "%s%s", "Invalid plug-in ", type);
+		error_set_code(1, "%s%s", _("Invalid plug-in "), type);
 		return NULL;
 	}
 	if(store != NULL)
@@ -541,7 +544,7 @@ static void _helper_event_status(Account * account, AccountEvent * event)
 		switch(event->status.status)
 		{
 			case AS_IDLE:
-				message = "Ready";
+				message = _("Ready");
 				break;
 			default:
 				break;
@@ -562,8 +565,8 @@ static char * _account_helper_authenticate(Account * account,
 	GtkWidget * widget;
 
 	dialog = gtk_dialog_new();
-	/* XXX translate this, enumerate the methods available */
-	gtk_window_set_title(GTK_WINDOW(dialog), "Authentication");
+	/* XXX enumerate the methods available */
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Authentication"));
 #if GTK_CHECK_VERSION(2, 14, 0)
 	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 #else
@@ -595,12 +598,11 @@ static int _account_helper_confirm(Account * account, char const * message)
 	dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 			GTK_BUTTONS_YES_NO,
 #if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", "Confirm");
+			"%s", _("Confirm"));
 	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
 #endif
 			"%s", message);
-	/* XXX translate this */
-	gtk_window_set_title(GTK_WINDOW(dialog), "Confirm");
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Confirm"));
 	ret = (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_YES) ? 0 : 1;
 	gtk_widget_destroy(dialog);
 	return ret;
