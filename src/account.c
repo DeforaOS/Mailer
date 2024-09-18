@@ -598,6 +598,7 @@ static char * _account_helper_authenticate(Account * account,
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * widget;
+	(void) account;
 
 	dialog = gtk_dialog_new();
 	/* XXX enumerate the methods available */
@@ -628,6 +629,7 @@ static int _account_helper_confirm(Account * account, char const * message)
 {
 	int ret;
 	GtkWidget * dialog;
+	(void) account;
 
 	/* XXX set mailer's main window as the parent? */
 	dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
