@@ -154,8 +154,7 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 			|| (title != NULL && account->title == NULL)
 			|| account->definition == NULL
 			|| account->definition->init == NULL
-			|| account->definition->destroy == NULL
-			|| account->definition->get_config == NULL)
+			|| account->definition->destroy == NULL)
 	{
 		account_delete(account);
 		error_set_code(1, "%s%s", _("Invalid plug-in "), type);
@@ -194,8 +193,6 @@ AccountConfig const * account_get_config(Account * account)
 {
 	if(account->account == NULL)
 		return account->definition->config;
-	if(account->config == NULL)
-		return account->definition->get_config(account->account);
 	return account->config;
 }
 
@@ -270,8 +267,7 @@ int account_config_load(Account * account, Config const * config)
 #endif
 	if(account->definition == NULL
 			|| account->account == NULL
-			|| (p = account->definition->get_config(
-					account->account)) == NULL
+			|| (p = account->definition->config) == NULL
 			|| account->title == NULL)
 		return 0;
 	if(account->config == NULL
@@ -379,17 +375,17 @@ int account_init(Account * account, AccountConfig const * config)
 		/* already initialized */
 		return 0;
 	if(config == NULL)
-		account->config = NULL;
-	else if((account->config = accountconfig_new_copy(config)) == NULL)
+		account->config = accountconfig_new_copy(
+				account->definition->config);
+	else
+		account->config = accountconfig_new_copy(config);
+	if(account->config == NULL)
 		return -1;
-	if((account->account = account->definition->init(&account->helper))
-			== NULL)
+	if((account->account = account->definition->init(&account->helper,
+					account->config)) == NULL)
 	{
-		if(account->config != NULL)
-		{
-			accountconfig_delete(account->config);
-			account->config = NULL;
-		}
+		accountconfig_delete(account->config);
+		account->config = NULL;
 		return -1;
 	}
 	return 0;

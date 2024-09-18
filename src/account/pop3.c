@@ -123,7 +123,7 @@ typedef struct _AccountPlugin
 {
 	AccountPluginHelper * helper;
 
-	AccountConfig * config;
+	AccountConfig const * config;
 
 	struct addrinfo * ai;
 	struct addrinfo * aip;
@@ -164,9 +164,9 @@ static AccountConfig _pop3_config[P3CV_COUNT + 1] =
 
 /* prototypes */
 /* plug-in */
-static POP3 * _pop3_init(AccountPluginHelper * helper);
+static POP3 * _pop3_init(AccountPluginHelper * helper,
+		AccountConfig const * config);
 static int _pop3_destroy(POP3 * pop3);
-static AccountConfig * _pop3_get_config(POP3 * pop3);
 static int _pop3_start(POP3 * pop3);
 static void _pop3_stop(POP3 * pop3);
 static int _pop3_refresh(POP3 * pop3, AccountFolder * folder,
@@ -217,7 +217,6 @@ AccountPluginDefinition account_plugin =
 	_pop3_config,
 	_pop3_init,
 	_pop3_destroy,
-	_pop3_get_config,
 	NULL,
 	_pop3_start,
 	_pop3_stop,
@@ -229,7 +228,8 @@ AccountPluginDefinition account_plugin =
 /* functions */
 /* plug-in */
 /* pop3_init */
-static POP3 * _pop3_init(AccountPluginHelper * helper)
+static POP3 * _pop3_init(AccountPluginHelper * helper,
+		AccountConfig const * config)
 {
 	POP3 * pop3;
 
@@ -237,12 +237,7 @@ static POP3 * _pop3_init(AccountPluginHelper * helper)
 		return NULL;
 	memset(pop3, 0, sizeof(*pop3));
 	pop3->helper = helper;
-	if((pop3->config = malloc(sizeof(_pop3_config))) == NULL)
-	{
-		free(pop3);
-		return NULL;
-	}
-	memcpy(pop3->config, &_pop3_config, sizeof(_pop3_config));
+	pop3->config = config;
 	pop3->ai = NULL;
 	pop3->aip = NULL;
 	pop3->fd = -1;
@@ -267,13 +262,6 @@ static int _pop3_destroy(POP3 * pop3)
 	_pop3_stop(pop3);
 	free(pop3);
 	return 0;
-}
-
-
-/* pop3_get_config */
-static AccountConfig * _pop3_get_config(POP3 * pop3)
-{
-	return pop3->config;
 }
 
 

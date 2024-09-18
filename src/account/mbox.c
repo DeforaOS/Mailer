@@ -76,7 +76,7 @@ struct _AccountFolder
 
 	/* Mbox */
 	Mbox * mbox;
-	AccountConfig * config;
+	AccountConfig const * config;
 	AccountMessage ** messages;
 	size_t messages_cnt;
 
@@ -100,7 +100,7 @@ struct _AccountPlugin
 {
 	AccountPluginHelper * helper;
 
-	AccountConfig * config;
+	AccountConfig const * config;
 
 	AccountFolder folders[_FOLDER_CNT];
 
@@ -138,9 +138,9 @@ static const struct
 
 
 /* plug-in */
-static Mbox * _mbox_init(AccountPluginHelper * helper);
+static Mbox * _mbox_init(AccountPluginHelper * helper,
+		AccountConfig const * config);
 static int _mbox_destroy(Mbox * mbox);
-static AccountConfig * _mbox_get_config(Mbox * mbox);
 static char * _mbox_get_source(Mbox * mbox, AccountFolder * folder,
 		AccountMessage * message);
 static int _mbox_start(Mbox * mbox);
@@ -157,7 +157,6 @@ AccountPluginDefinition account_plugin =
 	_mbox_config,
 	_mbox_init,
 	_mbox_destroy,
-	_mbox_get_config,
 	_mbox_get_source,
 	_mbox_start,
 	_mbox_stop,
@@ -187,7 +186,8 @@ static int _message_set_header(AccountMessage * message, char const * header);
 /* Mbox */
 /* functions */
 /* mbox_init */
-static Mbox * _mbox_init(AccountPluginHelper * helper)
+static Mbox * _mbox_init(AccountPluginHelper * helper,
+		AccountConfig const * config)
 {
 	Mbox * mbox;
 
@@ -198,12 +198,7 @@ static Mbox * _mbox_init(AccountPluginHelper * helper)
 		return NULL;
 	mbox->helper = helper;
 	mbox->timeout = MBOX_REFRESH_TIMEOUT;
-	if((mbox->config = malloc(sizeof(_mbox_config))) == NULL)
-	{
-		free(mbox);
-		return NULL;
-	}
-	memcpy(mbox->config, &_mbox_config, sizeof(_mbox_config));
+	mbox->config = config;
 	return mbox;
 }
 
@@ -232,13 +227,6 @@ static int _mbox_destroy(Mbox * mbox)
 	}
 	free(mbox);
 	return 0;
-}
-
-
-/* mbox_get_config */
-static AccountConfig * _mbox_get_config(Mbox * mbox)
-{
-	return mbox->config;
 }
 
 

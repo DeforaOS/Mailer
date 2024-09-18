@@ -159,7 +159,7 @@ typedef struct _AccountPlugin
 {
 	AccountPluginHelper * helper;
 
-	AccountConfig * config;
+	AccountConfig const * config;
 
 	struct addrinfo * ai;
 	struct addrinfo * aip;
@@ -204,9 +204,9 @@ AccountConfig const _imap4_config[I4CV_COUNT + 1] =
 
 /* prototypes */
 /* plug-in */
-static IMAP4 * _imap4_init(AccountPluginHelper * helper);
+static IMAP4 * _imap4_init(AccountPluginHelper * helper,
+		AccountConfig const * config);
 static int _imap4_destroy(IMAP4 * imap4);
-static AccountConfig * _imap4_get_config(IMAP4 * imap4);
 static int _imap4_start(IMAP4 * imap4);
 static void _imap4_stop(IMAP4 * imap4);
 static int _imap4_refresh(IMAP4 * imap4, AccountFolder * folder,
@@ -266,7 +266,6 @@ AccountPluginDefinition account_plugin =
 	_imap4_config,
 	_imap4_init,
 	_imap4_destroy,
-	_imap4_get_config,
 	NULL,
 	_imap4_start,
 	_imap4_stop,
@@ -278,7 +277,8 @@ AccountPluginDefinition account_plugin =
 /* functions */
 /* plug-in */
 /* imap4_init */
-static IMAP4 * _imap4_init(AccountPluginHelper * helper)
+static IMAP4 * _imap4_init(AccountPluginHelper * helper,
+		AccountConfig const * config)
 {
 	IMAP4 * imap4;
 
@@ -286,12 +286,7 @@ static IMAP4 * _imap4_init(AccountPluginHelper * helper)
 		return NULL;
 	memset(imap4, 0, sizeof(*imap4));
 	imap4->helper = helper;
-	if((imap4->config = malloc(sizeof(_imap4_config))) == NULL)
-	{
-		free(imap4);
-		return NULL;
-	}
-	memcpy(imap4->config, &_imap4_config, sizeof(_imap4_config));
+	imap4->config = config;
 	imap4->ai = NULL;
 	imap4->aip = NULL;
 	imap4->fd = -1;
@@ -302,8 +297,6 @@ static IMAP4 * _imap4_init(AccountPluginHelper * helper)
 /* imap4_destroy */
 static int _imap4_destroy(IMAP4 * imap4)
 {
-	size_t i;
-
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
@@ -313,20 +306,8 @@ static int _imap4_destroy(IMAP4 * imap4)
 #if 1 /* XXX anything wrong here? */
 	_imap4_folder_delete(imap4, &imap4->folders);
 #endif
-	for(i = 0; i < sizeof(_imap4_config) / sizeof(*_imap4_config); i++)
-		if(_imap4_config[i].type == ACT_STRING
-				|| _imap4_config[i].type == ACT_PASSWORD)
-			free(imap4->config[i].value);
-	free(imap4->config);
 	free(imap4);
 	return 0;
-}
-
-
-/* imap4_get_config */
-static AccountConfig * _imap4_get_config(IMAP4 * imap4)
-{
-	return imap4->config;
 }
 
 

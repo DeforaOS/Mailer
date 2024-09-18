@@ -141,9 +141,9 @@ typedef const struct _AccountPluginDefinition
 	char const * icon;
 	char const * description;
 	AccountConfig const * config;
-	AccountPlugin * (*init)(AccountPluginHelper * helper);
+	AccountPlugin * (*init)(AccountPluginHelper * helper,
+			AccountConfig const * config);
 	int (*destroy)(AccountPlugin * plugin);
-	AccountConfig * (*get_config)(AccountPlugin * plugin);
 	char * (*get_source)(AccountPlugin * plugin, AccountFolder * folder,
 			AccountMessage * message);
 	int (*start)(AccountPlugin * plugin);
