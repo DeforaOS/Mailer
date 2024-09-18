@@ -41,6 +41,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <Desktop.h>
 #include "../include/Mailer/plugin.h"
+#include "accountconfig.h"
 #include "folder.h"
 #include "message.h"
 #include "compose.h"
@@ -2104,6 +2105,7 @@ typedef struct _AccountData
 	AccountIdentity identity;
 	unsigned int available;
 	Account * account;
+	AccountConfig * config;
 	GtkWidget * assistant;
 	GtkWidget * settings;
 	GtkWidget * confirm;
@@ -2111,7 +2113,7 @@ typedef struct _AccountData
 
 /* functions */
 static GtkWidget * _assistant_account_select(AccountData * ad);
-static GtkWidget * _assistant_account_config(AccountConfig * config);
+static GtkWidget * _assistant_account_settings(AccountConfig * config);
 
 #if !GTK_CHECK_VERSION(2, 10, 0)
 # include "gtkassistant.c"
@@ -2146,6 +2148,7 @@ static void _on_preferences_account_new(gpointer data)
 	memset(&(ad->identity), 0, sizeof(ad->identity));
 	ad->available = 0;
 	ad->account = NULL;
+	ad->config = NULL;
 	ad->assistant = gtk_assistant_new();
 	assistant = GTK_ASSISTANT(ad->assistant);
 	g_signal_connect(G_OBJECT(ad->assistant), "cancel", G_CALLBACK(
@@ -2193,6 +2196,8 @@ static void _on_assistant_close(GtkWidget * widget, gpointer data)
 {
 	AccountData * ad = data;
 
+	if(ad->config != NULL)
+		accountconfig_delete(ad->config);
 	if(ad->account != NULL)
 		account_delete(ad->account);
 	free(ad);
@@ -2206,7 +2211,7 @@ static void _on_assistant_apply(gpointer data)
 	GtkTreeIter iter;
 
 	/* XXX check for errors */
-	account_init(ad->account);
+	account_init(ad->account, ad->config);
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(ad->mailer->pr_accounts));
 	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 #ifdef DEBUG
@@ -2225,7 +2230,7 @@ static void _on_assistant_apply(gpointer data)
 }
 
 /* on_assistant_prepare */
-static GtkWidget * _account_display(Account * account);
+static GtkWidget * _account_display(AccountData * ad);
 
 static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 		gpointer data)
@@ -2255,16 +2260,23 @@ static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 					AAP_INTRO);
 			ad->settings = _assistant_account_select(ad);
 		}
-		else
-			ad->settings = _assistant_account_config(
+		else if(ad->config == NULL)
+		{
+			/* FIXME check for errors */
+			ad->config = accountconfig_new_copy(
 					account_get_config(ad->account));
+			assert(ad->config != NULL);
+			ad->settings = _assistant_account_settings(ad->config);
+		}
+		else
+			ad->settings = _assistant_account_settings(ad->config);
 		gtk_container_add(GTK_CONTAINER(page), ad->settings);
 		gtk_widget_show_all(ad->settings);
 	}
 	else if(i == AAP_CONFIRM)
 	{
 		gtk_container_remove(GTK_CONTAINER(page), ad->confirm);
-		ad->confirm = _account_display(ad->account);
+		ad->confirm = _account_display(ad);
 		gtk_container_add(GTK_CONTAINER(page), ad->confirm);
 	}
 	old = i;
@@ -2392,7 +2404,7 @@ static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 	gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
 }
 
-/* _assistant_account_config */
+/* _assistant_account_settings */
 static GtkWidget * _update_string(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
 static GtkWidget * _update_password(AccountConfig * config,
@@ -2403,7 +2415,7 @@ static GtkWidget * _update_uint16(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
 static GtkWidget * _update_boolean(AccountConfig * config);
 
-static GtkWidget * _assistant_account_config(AccountConfig * config)
+static GtkWidget * _assistant_account_settings(AccountConfig * config)
 {
 	GtkWidget * vbox;
 	GtkSizeGroup * group;
@@ -2589,9 +2601,9 @@ static GtkWidget * _display_uint16(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
 static GtkWidget * _display_boolean(AccountConfig * config,
 		PangoFontDescription * desc, GtkSizeGroup * group);
-static GtkWidget * _account_display(Account * account)
+static GtkWidget * _account_display(AccountData * ad)
 {
-	AccountConfig * config;
+	Account * account = ad->account;
 	AccountConfig p;
 	GtkWidget * vbox;
 	GtkSizeGroup * group;
@@ -2599,7 +2611,6 @@ static GtkWidget * _account_display(Account * account)
 	GtkWidget * widget;
 	unsigned int i;
 
-	config = account_get_config(account);
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
@@ -2610,27 +2621,27 @@ static GtkWidget * _account_display(Account * account)
 	pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
 	widget = _display_string(&p, desc, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
-	for(i = 0; config[i].type != ACT_NONE; i++)
+	for(i = 0; ad->config[i].type != ACT_NONE; i++)
 	{
-		switch(config[i].type)
+		switch(ad->config[i].type)
 		{
 			case ACT_STRING:
-				widget = _display_string(&config[i], desc,
+				widget = _display_string(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_PASSWORD:
-				widget = _display_password(&config[i], desc,
+				widget = _display_password(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_FILE:
-				widget = _display_file(&config[i], desc, group);
+				widget = _display_file(&ad->config[i], desc, group);
 				break;
 			case ACT_UINT16:
-				widget = _display_uint16(&config[i], desc,
+				widget = _display_uint16(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_BOOLEAN:
-				widget = _display_boolean(&config[i], desc,
+				widget = _display_boolean(&ad->config[i], desc,
 						group);
 				break;
 			case ACT_SEPARATOR:
@@ -2907,7 +2918,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 				_("Account")));
 	/* settings tab */
 	/* FIXME this affects the account directly (eg cancel does not work) */
-	widget = _assistant_account_config(account_get_config(account));
+	widget = _assistant_account_settings(account_get_config(account));
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), widget, gtk_label_new(
 				_("Settings")));
 	gtk_box_pack_start(GTK_BOX(content), notebook, TRUE, TRUE, 0);
@@ -3295,7 +3306,7 @@ static int _mailer_config_load_account(Mailer * mailer, char const * name)
 	if((account = account_new(mailer, type, name, mailer->fo_store))
 			== NULL)
 		return -mailer_error(mailer, error_get(NULL), 1);
-	if(account_init(account) != 0
+	if(account_init(account, NULL) != 0
 			|| account_config_load(account, mailer->config) != 0
 			|| mailer_account_add(mailer, account) != 0)
 	{

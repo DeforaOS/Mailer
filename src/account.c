@@ -27,6 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
+
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -35,6 +36,7 @@
 #include <errno.h>
 #include <libintl.h>
 #include <System.h>
+#include "accountconfig.h"
 #include "folder.h"
 #include "mailer.h"
 #include "message.h"
@@ -67,8 +69,9 @@ struct _Account
 	GtkTreeStore * store;
 	GtkTreeRowReference * row;
 	Plugin * plugin;
-	AccountPluginDefinition * definition;
+	AccountPluginDefinition const * definition;
 	AccountPlugin * account;
+	AccountConfig * config;
 
 	int enabled;
 	AccountIdentity * identity;
@@ -145,6 +148,7 @@ Account * account_new(Mailer * mailer, char const * type, char const * title,
 	account->plugin = plugin_new(LIBDIR, PACKAGE, "account", type);
 	account->definition = (account->plugin != NULL)
 		? plugin_lookup(account->plugin, "account_plugin") : NULL;
+	account->config = NULL;
 	/* check for errors */
 	if(account->type == NULL || account->plugin == NULL
 			|| (title != NULL && account->title == NULL)
@@ -174,6 +178,8 @@ void account_delete(Account * account)
 	if(account->row != NULL)
 		gtk_tree_row_reference_free(account->row);
 	account_quit(account);
+	if(account->config != NULL)
+		accountconfig_delete(account->config);
 	string_delete(account->title);
 	string_delete(account->type);
 	if(account->plugin != NULL)
@@ -188,7 +194,9 @@ AccountConfig const * account_get_config(Account * account)
 {
 	if(account->account == NULL)
 		return account->definition->config;
-	return account->definition->get_config(account->account);
+	if(account->config == NULL)
+		return account->definition->get_config(account->account);
+	return account->config;
 }
 
 
@@ -247,56 +255,72 @@ int account_set_title(Account * account, char const * title)
 
 /* useful */
 /* account_config_load */
-int account_config_load(Account * account, Config * config)
+int account_config_load(Account * account, Config const * config)
 {
-	AccountConfig * p = account_get_config(account);
+	int ret = 0;
+	AccountConfig const * p;
 	char const * value;
 	char * q;
 	long l;
+	size_t i;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(\"%s\", %p)\n", __func__, account->title,
 			(void *)config);
 #endif
-	if(p == NULL || account->title == NULL)
+	if(account->definition == NULL
+			|| account->account == NULL
+			|| (p = account->definition->get_config(
+					account->account)) == NULL
+			|| account->title == NULL)
 		return 0;
-	for(; p->name != NULL; p++)
+	if(account->config == NULL
+			&& (account->config = accountconfig_new_copy(p))
+			== NULL)
+		return -1;
+	for(i = 0; p[i].type != ACT_NONE; i++)
 	{
-		if((value = config_get(config, account->title, p->name))
-				== NULL)
+		if(p[i].name == NULL
+				|| (value = config_get(config, account->title,
+						p[i].name)) == NULL)
 			continue;
-		switch(p->type)
+		switch(p[i].type)
 		{
 			case ACT_PASSWORD:
 				/* FIXME unscramble */
 			case ACT_FILE:
 			case ACT_STRING:
-				free(p->value);
-				p->value = strdup(value);
+				ret |= accountconfig_set(account->config,
+						p[i].name, value, NULL);
 				break;
 			case ACT_UINT16:
 				l = strtol(value, &q, 0);
+				/* FIXME report errors */
 				if(value[0] != '\0' && *q == '\0')
-					p->value = (void *)l;
+					ret |= accountconfig_set(
+							account->config,
+							p[i].name, l, NULL);
 				break;
 			case ACT_BOOLEAN:
-				p->value = (strcmp(value, "yes") == 0
-						|| strcmp(value, "1") == 0)
-					? (void *)1 : NULL;
+				ret |= accountconfig_set(account->config,
+						p[i].name,
+						(strcmp(value, "yes") == 0
+						 || strcmp(value, "1") == 0)
+						? TRUE : FALSE, NULL);
 				break;
 			case ACT_NONE:
 			case ACT_SEPARATOR:
 				break;
 		}
 	}
-	return 0;
+	return ret;
 }
 
 
 /* account_config_save */
 int account_config_save(Account * account, Config * config)
 {
-	AccountConfig * p = account_get_config(account);
+	AccountConfig const * p = account_get_config(account);
 	uint16_t u16;
 	char buf[6];
 
@@ -345,15 +369,30 @@ int account_config_save(Account * account, Config * config)
 
 
 /* account_init */
-int account_init(Account * account)
+int account_init(Account * account, AccountConfig const * config)
 {
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, account->title);
+	fprintf(stderr, "DEBUG: %s(\"%s\", %p)\n", __func__, account->title,
+			(void *)config);
 #endif
 	if(account->account != NULL)
+		/* already initialized */
 		return 0;
-	account->account = account->definition->init(&account->helper);
-	return (account->account != NULL) ? 0 : -1;
+	if(config == NULL)
+		account->config = NULL;
+	else if((account->config = accountconfig_new_copy(config)) == NULL)
+		return -1;
+	if((account->account = account->definition->init(&account->helper))
+			== NULL)
+	{
+		if(account->config != NULL)
+		{
+			accountconfig_delete(account->config);
+			account->config = NULL;
+		}
+		return -1;
+	}
+	return 0;
 }
 
 
@@ -431,7 +470,7 @@ int account_start(Account * account)
 	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, account->title);
 #endif
 	if(account->account == NULL
-			&& account_init(account) != 0)
+			&& account_init(account, NULL) != 0)
 		return -1;
 	if(account->definition->start == NULL)
 		return 0;

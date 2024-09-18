@@ -159,7 +159,7 @@ Message * message_new_open(Mailer * mailer, char const * filename)
 		return NULL;
 	}
 	if((account = account_new(mailer, "mbox", "title", NULL)) == NULL
-			|| account_init(account) != 0
+			|| account_init(account, NULL) != 0
 			|| account_config_load(account, config) != 0
 			|| account_start(account) != 0)
 	{

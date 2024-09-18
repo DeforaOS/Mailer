@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2006-2018 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2024 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Desktop Mailer */
 /* All rights reserved.
  *
@@ -28,48 +28,23 @@
 
 
 
-#ifndef MAILER_ACCOUNT_H
-# define MAILER_ACCOUNT_H
+#ifndef MAILER_ACCOUNTCONFIG_H
+# define MAILER_ACCOUNTCONFIG_H
 
-# include <System.h>
-# include "../include/Mailer.h"
+# include "../include/Mailer/account.h"
 
 
-/* Account */
+/* AccountConfig */
 /* types */
 
 
 /* functions */
-Account * account_new(Mailer * mailer, char const * type, char const * title,
-		GtkTreeStore * store);
-void account_delete(Account * account);
+AccountConfig * accountconfig_new_copy(AccountConfig const * config);
+void accountconfig_delete(AccountConfig * config);
 
 /* accessors */
-int account_get_enabled(Account * account);
-void account_set_enabled(Account * account, int enabled);
-
-AccountConfig const * account_get_config(Account * account);
-char const * account_get_name(Account * account);
-char const * account_get_title(Account * account);
-char const * account_get_type(Account * account);
-int account_set_name(Account * account, char const * name);
+int accountconfig_set(AccountConfig * config, ...);
 
 /* useful */
-int account_config_load(Account * account, Config const * config);
-int account_config_save(Account * account, Config * config);
 
-int account_init(Account * account, AccountConfig const * config);
-int account_quit(Account * account);
-
-void account_refresh(Account * account);
-int account_start(Account * account);
-void account_stop(Account * account);
-
-void account_store(Account * account, GtkTreeStore * store);
-
-GtkTextBuffer * account_select(Account * account, Folder * folder,
-		Message * message);
-GtkTextBuffer * account_select_source(Account * account, Folder * folder,
-		Message * message);
-
-#endif /* !MAILER_ACCOUNT_H */
+#endif /* !MAILER_ACCOUNTCONFIG_H */
