@@ -2991,7 +2991,6 @@ static int _preferences_ok_accounts(Mailer * mailer)
 {
 	GtkTreeModel * model;
 	GtkTreeIter iter;
-	GtkTreeModel * view_model;
 	gboolean loop;
 	Account * account;
 	gboolean active;
@@ -3003,8 +3002,6 @@ static int _preferences_ok_accounts(Mailer * mailer)
 	char * p;
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(mailer->pr_accounts));
-	view_model = gtk_tree_view_get_model(GTK_TREE_VIEW(
-				mailer->fo_view));
 	for(loop = gtk_tree_model_get_iter_first(model, &iter); loop == TRUE;
 			loop = gtk_tree_model_iter_next(model, &iter))
 	{
