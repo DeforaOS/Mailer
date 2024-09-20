@@ -2631,11 +2631,22 @@ static GtkWidget * _account_display(AccountData * ad)
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+	desc = pango_font_description_new();
+	pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
+	/* account name */
 	p.name = NULL;
 	p.title = _("Account name");
 	p.value = (void *)account_get_title(account);
-	desc = pango_font_description_new();
-	pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
+	widget = _display_string(&p, desc, group);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* your name */
+	p.title = _("Your name");
+	p.value = ad->identity.from;
+	widget = _display_string(&p, desc, group);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* e-mail address */
+	p.title = _("e-mail address");
+	p.value = ad->identity.email;
 	widget = _display_string(&p, desc, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	for(i = 0; ad->config[i].type != ACT_NONE; i++)
