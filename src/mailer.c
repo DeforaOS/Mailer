@@ -2286,6 +2286,9 @@ static void _on_assistant_prepare(GtkWidget * widget, GtkWidget * page,
 static void _on_account_name_changed(GtkWidget * widget, gpointer data);
 static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 		GtkSizeGroup * group, char const * text);
+static void _account_add_label_colon(GtkWidget * box,
+		PangoFontDescription * desc, GtkSizeGroup * group,
+		char const * text);
 
 static GtkWidget * _assistant_account_select(AccountData * ad)
 {
@@ -2302,7 +2305,7 @@ static GtkWidget * _assistant_account_select(AccountData * ad)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	desc = pango_font_description_new();
 	pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
-	_account_add_label(hbox, desc, group, _("Account name"));
+	_account_add_label(hbox, desc, group, _("Account name: "));
 	widget = gtk_entry_new();
 	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
 				_on_account_name_changed), ad);
@@ -2311,21 +2314,21 @@ static GtkWidget * _assistant_account_select(AccountData * ad)
 	/* default identity */
 	/* FIXME seems to not be remembered */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	_account_add_label(hbox, NULL, group, _("Your name"));
+	_account_add_label(hbox, NULL, group, _("Your name: "));
 	widget = gtk_entry_new();
 	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
 				_on_entry_changed), &(ad->identity.from));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	_account_add_label(hbox, NULL, group, _("e-mail address"));
+	_account_add_label(hbox, NULL, group, _("e-mail address: "));
 	widget = gtk_entry_new();
 	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
 				_on_entry_changed), &(ad->identity.email));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	_account_add_label(hbox, NULL, group, _("Type of account"));
+	_account_add_label(hbox, NULL, group, _("Type of account: "));
 #if GTK_CHECK_VERSION(2, 24, 0)
 	widget = gtk_combo_box_text_new();
 #else
@@ -2387,11 +2390,9 @@ static void _on_account_name_changed(GtkWidget * widget, gpointer data)
 static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 		GtkSizeGroup * group, char const * text)
 {
-	static char buf[80]; /* XXX hard-coded size */
 	GtkWidget * label;
 
-	snprintf(buf, sizeof(buf), "%s:", text);
-	label = gtk_label_new(buf);
+	label = gtk_label_new(text);
 	if(desc != NULL)
 		gtk_widget_override_font(label, desc);
 	if(group != NULL)
@@ -2402,6 +2403,22 @@ static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 #endif
 	gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
+}
+
+static void _account_add_label_colon(GtkWidget * box,
+		PangoFontDescription * desc, GtkSizeGroup * group,
+		char const * text)
+{
+	String * t;
+
+	if((t = string_new_append(text, ": ", NULL)) == NULL)
+		/* XXX survive the error */
+		_account_add_label(box, desc, group, text);
+	else
+	{
+		_account_add_label(box, desc, group, t);
+		string_delete(t);
+	}
 }
 
 /* _assistant_account_settings */
@@ -2467,7 +2484,7 @@ static GtkWidget * _update_string(AccountConfig * config,
 	GtkWidget * widget;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_entry_new();
 	if(config->value != NULL)
 		gtk_entry_set_text(GTK_ENTRY(widget), config->value);
@@ -2484,7 +2501,7 @@ static GtkWidget * _update_password(AccountConfig * config,
 	GtkWidget * widget;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_entry_new();
 	gtk_entry_set_visibility(GTK_ENTRY(widget), FALSE);
 	if(config->value != NULL)
@@ -2504,7 +2521,7 @@ static GtkWidget * _update_file(AccountConfig * config,
 	GtkWidget * widget;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_file_chooser_button_new(_("Choose file"),
 			GTK_FILE_CHOOSER_ACTION_OPEN);
 	if(config->value != NULL)
@@ -2551,7 +2568,7 @@ static GtkWidget * _update_uint16(AccountConfig * config,
 	gdouble value = u16;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_spin_button_new_with_range(0, 65535, 1);
 	gtk_spin_button_set_digits(GTK_SPIN_BUTTON(widget), 0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), value);
@@ -2666,7 +2683,7 @@ static GtkWidget * _display_string(AccountConfig * config,
 	GtkWidget * widget;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_label_new(config->value);
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
@@ -2690,7 +2707,7 @@ static GtkWidget * _display_password(AccountConfig * config,
 	GtkWidget * widget;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_label_new(_("hidden"));
 	desc = pango_font_description_new();
 	pango_font_description_set_style(desc, PANGO_STYLE_ITALIC);
@@ -2713,7 +2730,7 @@ static GtkWidget * _display_uint16(AccountConfig * config,
 	uint16_t u16 = (intptr_t)config->value;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	snprintf(buf, sizeof(buf), "%hu", u16);
 	widget = gtk_label_new(buf);
 #if GTK_CHECK_VERSION(3, 14, 0)
@@ -2732,7 +2749,7 @@ static GtkWidget * _display_boolean(AccountConfig * config,
 	GtkWidget * widget;
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	_account_add_label(hbox, desc, group, config->title);
+	_account_add_label_colon(hbox, desc, group, config->title);
 	widget = gtk_label_new(config->value != 0 ? _("Yes") : _("No"));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
@@ -2850,7 +2867,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	/* account name */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	widget = gtk_label_new(_("Account name:"));
+	widget = gtk_label_new(_("Account name: "));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
@@ -2863,12 +2880,12 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* identity */
-	frame = gtk_frame_new(_("Identity:"));
+	frame = gtk_frame_new(_("Identity: "));
 	vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 4);
 	/* identity: name */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	widget = gtk_label_new(_("Name:"));
+	widget = gtk_label_new(_("Name: "));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
@@ -2883,7 +2900,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	/* identity: address */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	widget = gtk_label_new(_("Address:"));
+	widget = gtk_label_new(_("e-mail address: "));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
@@ -2898,7 +2915,7 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	/* identity: organization */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-	widget = gtk_label_new(_("Organization:"));
+	widget = gtk_label_new(_("Organization: "));
 #if GTK_CHECK_VERSION(3, 14, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
