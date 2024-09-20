@@ -2344,13 +2344,32 @@ static void _on_account_name_changed(GtkWidget * widget, gpointer data)
 	AccountData * ad = data;
 	int current;
 	GtkWidget * page;
+	gboolean complete;
+	unsigned int i;
 
 	_on_entry_changed(widget, &ad->title);
 	current = gtk_assistant_get_current_page(GTK_ASSISTANT(ad->assistant));
 	page = gtk_assistant_get_nth_page(GTK_ASSISTANT(ad->assistant),
 			current);
+	if((complete = (strlen(ad->title) > 0) ? TRUE : FALSE) == TRUE)
+		for(i = 0; i < ad->mailer->account_cnt; i++)
+			if(strcmp(account_get_title(ad->mailer->account[i]),
+						ad->title) == 0)
+			{
+				complete = FALSE;
+				break;
+			}
+#if GTK_CHECK_VERSION(2, 16, 0)
+	gtk_entry_set_icon_from_icon_name(GTK_ENTRY(widget),
+			GTK_ENTRY_ICON_SECONDARY,
+			(strlen(ad->title) > 0 && complete == FALSE)
+			? "gtk-dialog-warning" : NULL);
+	gtk_entry_set_icon_tooltip_text(GTK_ENTRY(widget),
+			GTK_ENTRY_ICON_SECONDARY,
+			_("An account with that name already exists"));
+#endif
 	gtk_assistant_set_page_complete(GTK_ASSISTANT(ad->assistant), page,
-			strlen(ad->title) ? TRUE : FALSE);
+			complete);
 }
 
 static void _account_add_label(GtkWidget * box, PangoFontDescription * desc,
