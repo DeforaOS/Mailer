@@ -2803,7 +2803,7 @@ static void _on_preferences_account_edit(gpointer data)
 
 static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 {
-	char const * title;
+	AccountData * ad;
 	char const * p;
 	GtkWidget * window;
 	char buf[80];
@@ -2816,16 +2816,27 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	GtkWidget * hbox;
 	GtkSizeGroup * group;
 
-	title = account_get_title(account);
-	snprintf(buf, sizeof(buf), "%s%s", _("Edit account: "), title);
+	if((ad = malloc(sizeof(*ad))) == NULL)
+		/* FIXME report the error */
+		return NULL;
+	memset(ad, 0, sizeof(*ad));
+	ad->mailer = mailer;
+	if((ad->title = strdup(account_get_title(account))) == NULL)
+	{
+		/* FIXME report the error */
+		free(ad);
+		return NULL;
+	}
+	ad->account = account;
+	snprintf(buf, sizeof(buf), "%s%s", _("Edit account: "), ad->title);
 	window = gtk_dialog_new_with_buttons(buf, GTK_WINDOW(mailer->pr_window),
 			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_CANCEL,
 			GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK,
 			NULL);
 	g_signal_connect(G_OBJECT(window), "delete-event", G_CALLBACK(
-				_account_edit_on_closex), NULL);
+				_account_edit_on_closex), ad);
 	g_signal_connect(G_OBJECT(window), "response", G_CALLBACK(
-				_account_edit_on_response), NULL);
+				_account_edit_on_response), ad);
 #if GTK_CHECK_VERSION(2, 14, 0)
 	content = gtk_dialog_get_content_area(GTK_DIALOG(window));
 #else
@@ -2848,7 +2859,9 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
-	gtk_entry_set_text(GTK_ENTRY(widget), title);
+	gtk_entry_set_text(GTK_ENTRY(widget), ad->title);
+	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
+				_on_entry_changed), &ad->title);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* identity */
@@ -2866,8 +2879,12 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
-	if((p = config_get(mailer->config, title, "identity_name")) != NULL)
+	if((p = config_get(mailer->config, ad->title, "identity_name")) != NULL)
 		gtk_entry_set_text(GTK_ENTRY(widget), p);
+	/* XXX may fail */
+	ad->identity.from = (p != NULL) ? strdup(p) : NULL;
+	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
+				_on_entry_changed), &ad->identity.from);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	/* identity: address */
@@ -2881,8 +2898,13 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
-	if((p = config_get(mailer->config, title, "identity_email")) != NULL)
+	if((p = config_get(mailer->config, ad->title, "identity_email"))
+			!= NULL)
 		gtk_entry_set_text(GTK_ENTRY(widget), p);
+	/* XXX may fail */
+	ad->identity.email = (p != NULL) ? strdup(p) : NULL;
+	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
+				_on_entry_changed), &ad->identity.email);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	/* identity: organization */
@@ -2896,9 +2918,13 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
-	if((p = config_get(mailer->config, title, "identity_organization"))
+	if((p = config_get(mailer->config, ad->title, "identity_organization"))
 			!= NULL)
 		gtk_entry_set_text(GTK_ENTRY(widget), p);
+	/* XXX may fail */
+	ad->identity.organization = (p != NULL) ? strdup(p) : NULL;
+	g_signal_connect(G_OBJECT(widget), "changed", G_CALLBACK(
+				_on_entry_changed), &ad->identity.organization);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(frame), vbox2);
@@ -2918,15 +2944,33 @@ static GtkWidget * _account_edit(Mailer * mailer, Account * account)
 static gboolean _account_edit_on_closex(GtkWidget * widget, GdkEvent * event,
 		gpointer data)
 {
-	_account_edit_on_response(widget, GTK_RESPONSE_CANCEL, data);
+	AccountData * ad = data;
+
+	_account_edit_on_response(widget, GTK_RESPONSE_CANCEL, ad);
 	return TRUE;
 }
 
 static void _account_edit_on_response(GtkWidget * widget, gint response,
 		gpointer data)
 {
-	/* FIXME really implement */
+	AccountData * ad = data;
+
 	gtk_widget_hide(widget);
+	switch(response)
+	{
+		case GTK_RESPONSE_OK:
+			/* FIXME really implement */
+			break;
+		case GTK_RESPONSE_CANCEL:
+		default:
+			break;
+	}
+	free(ad->title);
+	free(ad->identity.from);
+	free(ad->identity.email);
+	free(ad->identity.organization);
+	free(ad->identity.signature);
+	free(ad);
 }
 
 static void _on_preferences_account_delete(gpointer data)

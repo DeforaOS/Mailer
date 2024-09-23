@@ -45,6 +45,7 @@ typedef struct _AccountIdentity
 {
 	char * from;
 	char * email;
+	char * organization;
 	char * signature;
 } AccountIdentity;
 
